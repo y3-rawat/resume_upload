@@ -10,8 +10,8 @@ module.exports = async (req, res) => {
         
         try {
             await client.connect();
-            const database = client.db('your_database');
-            const collection = database.collection('your_collection');
+            const database = client.db('resume-upload');
+            const collection = database.collection('res');
             
             const pdfData = Buffer.from(file, 'binary');
             const result = await collection.insertOne({
