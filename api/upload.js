@@ -5,7 +5,7 @@ module.exports = async (req, res) => {
         const file = req.body.pdf;
         
         // Connect to MongoDB
-        const uri = "your_mongodb_connection_string"; // Replace with your MongoDB connection string
+        const uri = "mongodb+srv://wwwyashrawat542:eYadbhFE21ZtagP4@res.3jx0ak2.mongodb.net/?retryWrites=true&w=majority&appName=res"; // Replace with your MongoDB connection string
         const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
         
         try {
