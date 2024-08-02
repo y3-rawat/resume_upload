@@ -35,8 +35,8 @@ module.exports = async (req, res) => {
             try {
                 await client.connect();
                 console.log("Connected to MongoDB");
-                const database = client.db('resume-upload');
-                const collection = database.collection('res');
+                const database = client.db('db');
+                const collection = database.collection('items');
 
                 const result = await collection.insertOne({
                     filename: fileName,
