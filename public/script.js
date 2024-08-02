@@ -4,6 +4,11 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
     let fileInput = document.getElementById('pdfFile');
     let file = fileInput.files[0];
     
+    if (!file) {
+        alert('Please select a file to upload.');
+        return;
+    }
+    
     let formData = new FormData();
     formData.append('pdf', file);
     
@@ -14,28 +19,22 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
             let percentComplete = (e.loaded / e.total) * 100;
             document.getElementById('progressBar').style.width = percentComplete + '%';
         }
-    }, false);
+    });
     
-
     xhr.addEventListener('load', function () {
         if (xhr.status === 200) {
             alert('File uploaded successfully!');
-            document.getElementById('progressBar').style.width = '0%';
         } else {
-            alert('Failed to upload file.');
-            document.getElementById('progressBar').style.width = '0%';
+            alert('Failed to upload file. Server responded with status ' + xhr.status);
         }
-    }, false);
+        document.getElementById('progressBar').style.width = '0%';
+    });
     
     xhr.addEventListener('error', function () {
-        alert('An error occurred.');
+        alert('An error occurred while uploading the file.');
         document.getElementById('progressBar').style.width = '0%';
-    }, false);
+    });
     
-
-    xhr.open('POST', '/api/upload.js', true);
-    console.log(":::")
+    xhr.open('POST', '/api/upload', true);
     xhr.send(formData);
-
-    console.log("sss")
 });
