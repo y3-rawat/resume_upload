@@ -1,9 +1,10 @@
 const { MongoClient, Binary } = require('mongodb');
 const Busboy = require('busboy');
 const cors = require('cors');
-const pdf = require('pdf-parse');
 
 module.exports = async (req, res) => {
+    console.log("Handler started, method:", req.method);
+
     // Enable CORS
     await new Promise((resolve, reject) => {
         cors()(req, res, (result) => {
@@ -13,8 +14,6 @@ module.exports = async (req, res) => {
             return resolve(result);
         });
     });
-
-    console.log("Handler started, method:", req.method);
 
     // Handle POST requests for file upload
     if (req.method === 'POST') {
@@ -27,7 +26,7 @@ module.exports = async (req, res) => {
             let fileType = '';
 
             busboy.on('file', (fieldname, file, { filename, mimeType }) => {
-                console.log(`Uploading: ${filename}`);
+                console.log(`Uploading: ${filename}, MIME type: ${mimeType}`);
                 fileName = filename;
                 fileType = mimeType;
                 const chunks = [];
@@ -36,6 +35,7 @@ module.exports = async (req, res) => {
                 });
                 file.on('end', () => {
                     fileBuffer = Buffer.concat(chunks);
+                    console.log(`File upload complete. Size: ${fileBuffer.length} bytes`);
                 });
             });
 
@@ -46,49 +46,46 @@ module.exports = async (req, res) => {
                     return resolve();
                 }
 
+                const uri = process.env.MONGODB_URI;
+                console.log("Attempting to connect to MongoDB...");
+                const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
                 try {
-                    // Extract text from PDF
-                    const data = await pdf(fileBuffer);
-                    const extractedText = data.text;
-
-                    const uri = process.env.MONGODB_URI;
-                    const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-
                     await client.connect();
                     console.log("Connected to MongoDB");
                     const database = client.db('db');
                     const collection = database.collection('items');
 
+                    console.log("Inserting document into MongoDB...");
                     const result = await collection.insertOne({
                         filename: fileName,
                         filetype: fileType,
-                        filedata: new Binary(fileBuffer),
-                        extractedText: extractedText
+                        filedata: new Binary(fileBuffer)
                     });
 
-                    console.log("File and extracted text successfully uploaded to MongoDB");
-                    res.status(200).json({ success: true, extractedText: extractedText });
+                    console.log("File successfully uploaded to MongoDB", result);
+                    res.status(200).json({ success: true });
                 } catch (error) {
-                    console.error("Error processing file or uploading to MongoDB:", error);
-                    res.status(500).json({ success: false, message: 'Failed to process file or save to database' });
+                    console.error("Error uploading file to MongoDB:", error);
+                    res.status(500).json({ success: false, message: 'Failed to save to database', error: error.message });
                 } finally {
-                    if (client) {
-                        await client.close();
-                    }
+                    await client.close();
+                    console.log("MongoDB connection closed");
                     resolve();
                 }
             });
 
             busboy.on('error', (error) => {
                 console.error("Busboy error:", error);
-                res.status(500).json({ success: false, message: 'File processing error' });
+                res.status(500).json({ success: false, message: 'File processing error', error: error.message });
                 resolve();
             });
 
             req.pipe(busboy);
         });
+    } else {
+        // Method not allowed for other HTTP methods
+        console.log("Method not allowed:", req.method);
+        return res.status(405).json({ success: false, message: 'Method not allowed' });
     }
-
-    // Method not allowed for other HTTP methods
-    return res.status(405).json({ success: false, message: 'Method not allowed' });
 };
