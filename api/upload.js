@@ -1,6 +1,7 @@
 const { MongoClient, Binary } = require('mongodb');
 const Busboy = require('busboy');
 const cors = require('cors');
+const pdfParse = require('pdf-parse');
 
 module.exports = async (req, res) => {
     console.log("Handler started, method:", req.method);
@@ -56,15 +57,20 @@ module.exports = async (req, res) => {
                     const database = client.db('db');
                     const collection = database.collection('items');
 
+                    // Extract text from the PDF
+                    const pdfData = await pdfParse(fileBuffer);
+                    const extractedText = pdfData.text || '';
+
                     console.log("Inserting document into MongoDB...");
                     const result = await collection.insertOne({
                         filename: fileName,
                         filetype: fileType,
-                        filedata: new Binary(fileBuffer)
+                        filedata: new Binary(fileBuffer),
+                        extractedText: extractedText
                     });
 
                     console.log("File successfully uploaded to MongoDB", result);
-                    res.status(200).json({ success: true });
+                    res.status(200).json({ success: true, extractedText: extractedText });
                 } catch (error) {
                     console.error("Error uploading file to MongoDB:", error);
                     res.status(500).json({ success: false, message: 'Failed to save to database', error: error.message });

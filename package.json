@@ -6,9 +6,11 @@
     "dependencies": {
       "mongodb": "^4.4.0",
       "busboy": "^1.6.0",
-      "cors": "^2.8.5"
+      "cors": "^2.8.5",
+      "pdf-parse": "^1.1.1"
     },
     "engines": {
       "node": ">=14.0.0"
     }
   }
+  
