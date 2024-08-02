@@ -2,22 +2,30 @@ const { MongoClient, Binary } = require('mongodb');
 const Busboy = require('busboy');
 const fs = require('fs');
 const path = require('path');
+const cors = require('cors');
 
 module.exports = async (req, res) => {
     console.log("Handler started");
-
+    await new Promise((resolve, reject) => {
+        cors()(req, res, (result) => {
+            if (result instanceof Error) {
+                return reject(result);
+            }
+            return resolve(result);
+        });
+    });
+    
     // Serve the HTML file for GET requests
     if (req.method === 'GET') {
-        const htmlPath = path.join(__dirname, 'index.html');
-        fs.readFile(htmlPath, 'utf8', (err, content) => {
-            if (err) {
-                console.error("Error reading HTML file:", err);
-                return res.status(500).send('Error loading page');
-            }
+        const htmlPath = path.join(__dirname, '..', 'index.html');
+        try {
+            const content = await fs.promises.readFile(htmlPath, 'utf8');
             res.setHeader('Content-Type', 'text/html');
             return res.send(content);
-        });
-        return;
+        } catch (err) {
+            console.error("Error reading HTML file:", err);
+            return res.status(500).send('Error loading page');
+        }
     }
 
     // Handle POST requests for file upload
