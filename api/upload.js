@@ -25,7 +25,8 @@ module.exports = async (req, res) => {
             let fileBuffer = null;
             let fileName = '';
             let fileType = '';
-
+            let formData = {};
+            
             busboy.on('file', (fieldname, file, { filename, mimeType }) => {
                 console.log(`Uploading: ${filename}, MIME type: ${mimeType}`);
                 fileName = filename;
@@ -38,6 +39,11 @@ module.exports = async (req, res) => {
                     fileBuffer = Buffer.concat(chunks);
                     console.log(`File upload complete. Size: ${fileBuffer.length} bytes`);
                 });
+            });
+
+            busboy.on('field', (fieldname, val) => {
+                console.log(`Field [${fieldname}]: value: ${val}`);
+                formData[fieldname] = val;
             });
 
             busboy.on('finish', async () => {
@@ -66,7 +72,8 @@ module.exports = async (req, res) => {
                         filename: fileName,
                         filetype: fileType,
                         filedata: new Binary(fileBuffer),
-                        extractedText: extractedText
+                        extractedText: extractedText,
+                        formData: formData // Save form data as well
                     });
 
                     console.log("File successfully uploaded to MongoDB", result);
