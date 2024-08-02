@@ -82,6 +82,8 @@ module.exports = async (req, res) => {
                         filename: fileName,
                         filetype: fileType,
                         filedata: new Binary(fileBuffer),
+
+                        
                         extractedText: extractedText,
                         job_description: job_description,
                         additional_information: additional_information,
