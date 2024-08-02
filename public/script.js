@@ -16,7 +16,7 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
         }
     }, false);
     
-    
+
     xhr.addEventListener('load', function () {
         if (xhr.status === 200) {
             alert('File uploaded successfully!');
@@ -32,7 +32,7 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
         document.getElementById('progressBar').style.width = '0%';
     }, false);
     
-    xhr.open('POST', '/api/upload', true);
+    xhr.open('POST', '/api/upload.js', true);
     console.log(":::")
     xhr.send(formData);
 });
