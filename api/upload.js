@@ -1,12 +1,17 @@
 const { MongoClient, Binary } = require('mongodb');
 const Busboy = require('busboy');
-console.log("start-astas")
-module.exports = async (req, res) => {
-    console.log("start")
-    if (req.method === 'POST') {
-        console.log("Received POST request");
 
-        const busboy = new Busboy({ headers: req.headers });
+module.exports = async (req, res) => {
+    console.log("API handler started");
+    
+    if (req.method !== 'POST') {
+        return res.status(405).json({ success: false, message: 'Method not allowed' });
+    }
+
+    console.log("Received POST request");
+
+    return new Promise((resolve, reject) => {
+        const busboy = Busboy({ headers: req.headers });
         let fileBuffer = null;
         let fileName = '';
         let fileType = '';
@@ -15,22 +20,23 @@ module.exports = async (req, res) => {
             console.log(`Uploading: ${filename}`);
             fileName = filename;
             fileType = mimetype;
+            const chunks = [];
             file.on('data', (data) => {
-                if (fileBuffer) {
-                    fileBuffer = Buffer.concat([fileBuffer, data]);
-                } else {
-                    fileBuffer = data;
-                }
+                chunks.push(data);
+            });
+            file.on('end', () => {
+                fileBuffer = Buffer.concat(chunks);
             });
         });
 
         busboy.on('finish', async () => {
             if (!fileBuffer) {
                 console.error("No file received");
-                return res.status(400).json({ success: false, message: 'No file uploaded' });
+                res.status(400).json({ success: false, message: 'No file uploaded' });
+                return resolve();
             }
 
-            const uri = "mongodb+srv://wwwyashrawat542:eYadbhFE21ZtagP4@res.3jx0ak2.mongodb.net/?retryWrites=true&w=majority&appName=res"; // Replace with your MongoDB connection string
+            const uri = process.env.MONGODB_URI; // Use environment variable for MongoDB URI
             const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
             try {
@@ -52,13 +58,16 @@ module.exports = async (req, res) => {
                 res.status(500).json({ success: false, message: 'Failed to save to database' });
             } finally {
                 await client.close();
-                console.error("Error ");
-
+                resolve();
             }
         });
 
+        busboy.on('error', (error) => {
+            console.error("Busboy error:", error);
+            res.status(500).json({ success: false, message: 'File processing error' });
+            resolve();
+        });
+
         req.pipe(busboy);
-    } else {
-        res.status(405).json({ success: false, message: 'Method not allowed' });
-    }
+    });
 };

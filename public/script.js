@@ -35,6 +35,7 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
         document.getElementById('progressBar').style.width = '0%';
     });
     
+    // Make sure this endpoint matches your Vercel API route
     xhr.open('POST', '/api/upload', true);
     xhr.send(formData);
 });
