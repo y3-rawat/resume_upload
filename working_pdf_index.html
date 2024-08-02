@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload PDF to MongoDB</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        input[type="file"] {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 0.5rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .progress {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        .progress-bar {
+            width: 0;
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        #status {
+            margin-top: 1rem;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload PDF to MongoDB</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" id="pdfFile" accept="application/pdf" required>
+            <button type="submit">Upload</button>
+        </form>
+        <div class="progress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('uploadForm');
+            const fileInput = document.getElementById('pdfFile');
+            const progressBar = document.getElementById('progressBar');
+            const statusDiv = document.getElementById('status');
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                
+                let file = fileInput.files[0];
+                
+                if (!file) {
+                    updateStatus('Please select a file to upload.', 'red');
+                    return;
+                }
+                
+                if (file.type !== 'application/pdf') {
+                    updateStatus('Please select a PDF file.', 'red');
+                    return;
+                }
+
+                let formData = new FormData();
+                formData.append('pdf', file);
+                
+                let xhr = new XMLHttpRequest();
+                
+                xhr.upload.addEventListener('progress', function (e) {
+                    if (e.lengthComputable) {
+                        let percentComplete = (e.loaded / e.total) * 100;
+                        progressBar.style.width = percentComplete + '%';
+                        updateStatus(`Uploading: ${percentComplete.toFixed(2)}%`, 'blue');
+                    }
+                });
+                
+                xhr.addEventListener('load', function () {
+                    if (xhr.status === 200) {
+                        updateStatus('File uploaded successfully!', 'green');
+                    } else {
+                        updateStatus('Failed to upload file. Server responded with status ' + xhr.status, 'red');
+                    }
+                    progressBar.style.width = '0%';
+                });
+                
+                xhr.addEventListener('error', function () {
+                    updateStatus('An error occurred while uploading the file.', 'red');
+                    progressBar.style.width = '0%';
+                });
+                
+                updateStatus('Starting upload...', 'blue');
+                xhr.open('POST', '/api/upload', true);
+                xhr.send(formData);
+            });
+
+            function updateStatus(message, color) {
+                statusDiv.textContent = message;
+                statusDiv.style.color = color;
+            }
+        });
+    </script>
+</body>
+</html>

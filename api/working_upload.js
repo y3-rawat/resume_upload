@@ -7,7 +7,7 @@ module.exports = async (req, res) => {
     await new Promise((resolve, reject) => {
         cors()(req, res, (result) => {
             if (result instanceof Error) {
-                return reject(result);  
+                return reject(result);
             }
             return resolve(result);
         });
