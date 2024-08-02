@@ -1,11 +1,9 @@
 const { MongoClient, Binary } = require('mongodb');
 const Busboy = require('busboy');
-const fs = require('fs');
-const path = require('path');
 const cors = require('cors');
 
 module.exports = async (req, res) => {
-    console.log("Handler started");
+    // Enable CORS
     await new Promise((resolve, reject) => {
         cors()(req, res, (result) => {
             if (result instanceof Error) {
@@ -14,19 +12,8 @@ module.exports = async (req, res) => {
             return resolve(result);
         });
     });
-    
-    // Serve the HTML file for GET requests
-    if (req.method === 'GET') {
-        const htmlPath = path.join(__dirname, '..', 'index.html');
-        try {
-            const content = await fs.promises.readFile(htmlPath, 'utf8');
-            res.setHeader('Content-Type', 'text/html');
-            return res.send(content);
-        } catch (err) {
-            console.error("Error reading HTML file:", err);
-            return res.status(500).send('Error loading page');
-        }
-    }
+
+    console.log("Handler started, method:", req.method);
 
     // Handle POST requests for file upload
     if (req.method === 'POST') {
@@ -38,10 +25,10 @@ module.exports = async (req, res) => {
             let fileName = '';
             let fileType = '';
 
-            busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
+            busboy.on('file', (fieldname, file, { filename, mimeType }) => {
                 console.log(`Uploading: ${filename}`);
                 fileName = filename;
-                fileType = mimetype;
+                fileType = mimeType;
                 const chunks = [];
                 file.on('data', (data) => {
                     chunks.push(data);
