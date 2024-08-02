@@ -16,6 +16,7 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
         }
     }, false);
     
+    
     xhr.addEventListener('load', function () {
         if (xhr.status === 200) {
             alert('File uploaded successfully!');
