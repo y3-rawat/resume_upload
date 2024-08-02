@@ -10,7 +10,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
         }
@@ -19,6 +19,8 @@
             padding: 2rem;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
         }
         h1 {
             text-align: center;
@@ -63,6 +65,16 @@
             text-align: center;
             font-weight: bold;
         }
+        #extractedText {
+            margin-top: 2rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 1rem;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -76,6 +88,7 @@
             <div class="progress-bar" id="progressBar"></div>
         </div>
         <div id="status"></div>
+        <div id="extractedText"></div>
     </div>
 
     <script>
@@ -84,6 +97,7 @@
             const fileInput = document.getElementById('pdfFile');
             const progressBar = document.getElementById('progressBar');
             const statusDiv = document.getElementById('status');
+            const extractedTextDiv = document.getElementById('extractedText');
 
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
@@ -115,7 +129,13 @@
                 
                 xhr.addEventListener('load', function () {
                     if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
                         updateStatus('File uploaded successfully!', 'green');
+                        if (response.extractedText) {
+                            extractedTextDiv.textContent = response.extractedText;
+                        } else {
+                            extractedTextDiv.textContent = 'No text extracted from the PDF.';
+                        }
                     } else {
                         updateStatus('Failed to upload file. Server responded with status ' + xhr.status, 'red');
                     }

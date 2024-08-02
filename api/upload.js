@@ -1,13 +1,14 @@
 const { MongoClient, Binary } = require('mongodb');
 const Busboy = require('busboy');
 const cors = require('cors');
+const pdf = require('pdf-parse');
 
 module.exports = async (req, res) => {
     // Enable CORS
     await new Promise((resolve, reject) => {
         cors()(req, res, (result) => {
             if (result instanceof Error) {
-                return reject(result);  
+                return reject(result);
             }
             return resolve(result);
         });
@@ -45,10 +46,14 @@ module.exports = async (req, res) => {
                     return resolve();
                 }
 
-                const uri = process.env.MONGODB_URI;
-                const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-
                 try {
+                    // Extract text from PDF
+                    const data = await pdf(fileBuffer);
+                    const extractedText = data.text;
+
+                    const uri = process.env.MONGODB_URI;
+                    const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
                     await client.connect();
                     console.log("Connected to MongoDB");
                     const database = client.db('db');
@@ -57,16 +62,19 @@ module.exports = async (req, res) => {
                     const result = await collection.insertOne({
                         filename: fileName,
                         filetype: fileType,
-                        filedata: new Binary(fileBuffer)
+                        filedata: new Binary(fileBuffer),
+                        extractedText: extractedText
                     });
 
-                    console.log("File successfully uploaded to MongoDB");
-                    res.status(200).json({ success: true });
+                    console.log("File and extracted text successfully uploaded to MongoDB");
+                    res.status(200).json({ success: true, extractedText: extractedText });
                 } catch (error) {
-                    console.error("Error uploading file to MongoDB:", error);
-                    res.status(500).json({ success: false, message: 'Failed to save to database' });
+                    console.error("Error processing file or uploading to MongoDB:", error);
+                    res.status(500).json({ success: false, message: 'Failed to process file or save to database' });
                 } finally {
-                    await client.close();
+                    if (client) {
+                        await client.close();
+                    }
                     resolve();
                 }
             });
