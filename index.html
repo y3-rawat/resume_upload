@@ -116,6 +116,12 @@
         .success-message {
             color: #38A169;
         }
+        .progress-bar {
+    width: 0%;
+    height: 4px; /* Adjust height as needed */
+    background-color: var(--color-primary);
+    transition: width 0.4s ease;
+}
 
         @media (max-width: 768px) {
             .container {
@@ -148,6 +154,8 @@
         </style>
         <main class="grid grid-cols-1 md:grid-cols-2 gap-8 o">
             <section class="order-2 md:order-1 space-y-6">
+                <form id="resumeForm">
+
                 <div class="card">
                     <h2 class="text-2xl font-semibold mb-4 text-primary">
                         <i class="fas fa-briefcase mr-2"></i>Job Details
@@ -223,6 +231,8 @@
                     <div id="status"></div>
 
                 </div>
+            </form>
+
             </section>
         </main>
     </div>
