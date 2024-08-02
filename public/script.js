@@ -32,7 +32,10 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
         document.getElementById('progressBar').style.width = '0%';
     }, false);
     
+
     xhr.open('POST', '/api/upload.js', true);
     console.log(":::")
     xhr.send(formData);
+
+    console.log("sss")
 });
