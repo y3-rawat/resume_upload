@@ -26,7 +26,10 @@ module.exports = async (req, res) => {
             let fileName = '';
             let fileType = '';
             let formData = {};
-            
+            let job_description = '';
+            let additional_information = '';
+            let experience = '';
+
             busboy.on('file', (fieldname, file, { filename, mimeType }) => {
                 console.log(`Uploading: ${filename}, MIME type: ${mimeType}`);
                 fileName = filename;
@@ -43,6 +46,13 @@ module.exports = async (req, res) => {
 
             busboy.on('field', (fieldname, val) => {
                 console.log(`Field [${fieldname}]: value: ${val}`);
+                if (fieldname === 'job_description') {
+                    job_description = val;
+                } else if (fieldname === 'additional_information') {
+                    additional_information = val;
+                } else if (fieldname === 'experience') {
+                    experience = val;
+                }
                 formData[fieldname] = val;
             });
 
@@ -73,6 +83,9 @@ module.exports = async (req, res) => {
                         filetype: fileType,
                         filedata: new Binary(fileBuffer),
                         extractedText: extractedText,
+                        job_description: job_description,
+                        additional_information: additional_information,
+                        experience: experience,
                         formData: formData // Save form data as well
                     });
 

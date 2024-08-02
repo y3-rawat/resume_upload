@@ -237,22 +237,23 @@
         </main>
     </div>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-        const dropArea = document.getElementById('dropArea');
-        const fileInput = document.getElementById('file-upload');
-        const resumeError = document.getElementById('resumeError');
-        const fileInfo = document.getElementById('fileInfo');
-        const form = document.getElementById('resumeForm');
-        const progressBar = document.getElementById('progressBar');
-        const jobDescription = document.getElementById('jobDescription');
-        const wordCount = document.getElementById('wordCount');
-        const statusDiv = document.getElementById('status');
-        form.addEventListener('submit', function (e) {
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropArea = document.getElementById('dropArea');
+            const fileInput = document.getElementById('file-upload');
+            const resumeError = document.getElementById('resumeError');
+            const fileInfo = document.getElementById('fileInfo');
+            const form = document.getElementById('resumeForm');
+            const progressBar = document.getElementById('progressBar');
+            const jobDescription = document.getElementById('jobDescription');
+            const additionalInfo = document.getElementById('additionalInfo');
+            const experience = document.querySelector('input[name="experience"]:checked');
+            const wordCount = document.getElementById('wordCount');
+            const statusDiv = document.getElementById('status');
+        
+            form.addEventListener('submit', function (e) {
                 e.preventDefault();
-                
+        
                 let file = fileInput.files[0];
-                
                 if (!file) {
                     updateStatus('Please select a file to upload.', 'red');
                     return;
@@ -262,12 +263,15 @@
                     updateStatus('Please select a PDF file.', 'red');
                     return;
                 }
-
+        
                 let formData = new FormData();
                 formData.append('pdf', file);
-                
+                formData.append('job_description', jobDescription.value);
+                formData.append('additional_information', additionalInfo.value);
+                formData.append('experience', experience.value);
+        
                 let xhr = new XMLHttpRequest();
-                
+        
                 xhr.upload.addEventListener('progress', function (e) {
                     if (e.lengthComputable) {
                         let percentComplete = (e.loaded / e.total) * 100;
@@ -275,7 +279,7 @@
                         updateStatus(`Uploading: ${percentComplete.toFixed(2)}%`, 'blue');
                     }
                 });
-                
+        
                 xhr.addEventListener('load', function () {
                     if (xhr.status === 200) {
                         updateStatus('File uploaded successfully!', 'green');
@@ -284,21 +288,23 @@
                     }
                     progressBar.style.width = '0%';
                 });
-                
+        
                 xhr.addEventListener('error', function () {
                     updateStatus('An error occurred while uploading the file.', 'red');
                     progressBar.style.width = '0%';
                 });
-                
+        
                 updateStatus('Starting upload...', 'blue');
                 xhr.open('POST', '/api/upload', true);
                 xhr.send(formData);
             });
+        
             function updateStatus(message, color) {
                 statusDiv.textContent = message;
                 statusDiv.style.color = color;
             }
         });
-    </script>
+        </script>
+        
 </body>
 </html>
