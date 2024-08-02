@@ -213,7 +213,7 @@
                     <p id="resumeError" class="error-message hidden mt-2"></p>
                 </div>
                 <div style="margin: 3%;"></div>
-                <div class="card" >
+                <div class="card">
                     <h2 class="text-2xl font-semibold mb-4 text-primary">
                         <i class="fas fa-user-tie mr-2"></i>Experience Level
                     </h2>
@@ -226,18 +226,17 @@
                             <input type="radio" name="experience" value="NoExperience" required class="form-radio text-primary">
                             <span>No Experience</span>
                         </label>
-
                     </div>
                     <div id="status"></div>
-
                 </div>
+                
             </form>
 
             </section>
         </main>
     </div>
     <script>
-      document.addEventListener('DOMContentLoaded', function () {
+   document.addEventListener('DOMContentLoaded', function () {
     const dropArea = document.getElementById('dropArea');
     const fileInput = document.getElementById('file-upload');
     const resumeError = document.getElementById('resumeError');
@@ -246,10 +245,8 @@
     const progressBar = document.getElementById('progressBar');
     const jobDescription = document.getElementById('jobDescription');
     const additionalInfo = document.getElementById('additionalInfo');
-    const experience = document.querySelector('input[name="experience"]:checked');
-    const wordCount = document.getElementById('wordCount');
     const statusDiv = document.getElementById('status');
-
+    
     form.addEventListener('submit', function (e) {
         e.preventDefault();
 
@@ -264,11 +261,17 @@
             return;
         }
 
+        let selectedExperience = document.querySelector('input[name="experience"]:checked');
+        if (!selectedExperience) {
+            updateStatus('Please select your experience level.', 'red');
+            return;
+        }
+        
         let formData = new FormData();
         formData.append('pdf', file);
         formData.append('job_description', jobDescription.value);
         formData.append('additional_information', additionalInfo.value);
-        formData.append('experience', experience.value);
+        formData.append('experience', selectedExperience.value);
 
         let xhr = new XMLHttpRequest();
 
@@ -283,14 +286,20 @@
         xhr.addEventListener('load', function () {
             if (xhr.status === 200) {
                 updateStatus('File uploaded successfully!', 'green');
+                fileInfo.textContent = 'File uploaded successfully!';
+                fileInfo.classList.remove('hidden');
             } else {
                 updateStatus('Failed to upload file. Server responded with status ' + xhr.status, 'red');
+                fileInfo.textContent = 'Failed to upload file.';
+                fileInfo.classList.remove('hidden');
             }
             progressBar.style.width = '0%';
         });
 
         xhr.addEventListener('error', function () {
             updateStatus('An error occurred while uploading the file.', 'red');
+            fileInfo.textContent = 'An error occurred while uploading the file.';
+            fileInfo.classList.remove('hidden');
             progressBar.style.width = '0%';
         });
 
