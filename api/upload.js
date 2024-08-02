@@ -2,6 +2,7 @@ const { MongoClient, Binary } = require('mongodb');
 const Busboy = require('busboy');
 
 module.exports = async (req, res) => {
+    console.log("start")
     if (req.method === 'POST') {
         console.log("Received POST request");
 
@@ -51,6 +52,8 @@ module.exports = async (req, res) => {
                 res.status(500).json({ success: false, message: 'Failed to save to database' });
             } finally {
                 await client.close();
+                console.error("Error ");
+
             }
         });
 

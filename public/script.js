@@ -32,5 +32,6 @@ document.getElementById('uploadForm').addEventListener('submit', function (e) {
     }, false);
     
     xhr.open('POST', '/api/upload', true);
+    console.log(":::")
     xhr.send(formData);
 });
