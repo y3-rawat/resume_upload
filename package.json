@@ -1,0 +1,14 @@
+{
+    "name": "pdf-upload-to-mongodb",
+    "version": "1.0.0",
+    "description": "Upload PDF files to MongoDB",
+    "main": "api/upload.js",
+    "dependencies": {
+      "mongodb": "^4.4.0",
+      "busboy": "^1.6.0",
+      "cors": "^2.8.5"
+    },
+    "engines": {
+      "node": ">=14.0.0"
+    }
+  }
