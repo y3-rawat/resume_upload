@@ -3,6 +3,19 @@ const Busboy = require('busboy');
 const cors = require('cors');
 const pdfParse = require('pdf-parse');
 
+const express = require('express');
+const app = express();
+const uploadHandler = require('./api/upload'); // Adjust path as necessary
+
+app.post('/api/upload', uploadHandler);
+
+// Handle other routes or errors
+app.use((req, res) => {
+    res.status(404).send('Not Found');
+});
+
+app.listen(3000, () => console.log('Server running on port 3000'));
+
 module.exports = async (req, res) => {
     console.log("Handler started, method:", req.method);
 
