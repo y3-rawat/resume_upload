@@ -282,19 +282,20 @@
                 updateStatus(`Uploading: ${percentComplete.toFixed(2)}%`, 'blue');
             }
         });
-
         xhr.addEventListener('load', function () {
-            if (xhr.status === 200) {
-                updateStatus('File uploaded successfully!', 'green');
-                fileInfo.textContent = 'File uploaded successfully!';
-                fileInfo.classList.remove('hidden');
-            } else {
-                updateStatus('Failed to upload file. Server responded with status ' + xhr.status, 'red');
-                fileInfo.textContent = 'Failed to upload file.';
-                fileInfo.classList.remove('hidden');
-            }
-            progressBar.style.width = '0%';
-        });
+    if (xhr.status === 200) {
+        // Redirect to the result page with the extracted text
+        let extractedText = xhr.responseText; // Assuming the response contains the extracted text
+        let encodedText = encodeURIComponent(extractedText);
+        window.location.href = `/result.html?extractedText=${encodedText}`;
+    } else {
+        updateStatus('Failed to upload file. Server responded with status ' + xhr.status, 'red');
+        fileInfo.textContent = 'Failed to upload file.';
+        fileInfo.classList.remove('hidden');
+    }
+    progressBar.style.width = '0%';
+});
+
 
         xhr.addEventListener('error', function () {
             updateStatus('An error occurred while uploading the file.', 'red');

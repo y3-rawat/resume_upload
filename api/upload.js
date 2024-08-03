@@ -92,7 +92,7 @@ module.exports = async (req, res) => {
                     });
 
                     console.log("File successfully uploaded to MongoDB", result);
-                    res.status(200).json({ success: true, extractedText: extractedText });
+                    res.redirect(`/result.html?extractedText=${encodeURIComponent(extractedText)}`);
                 } catch (error) {
                     console.error("Error uploading file to MongoDB:", error);
                     res.status(500).json({ success: false, message: 'Failed to save to database', error: error.message });

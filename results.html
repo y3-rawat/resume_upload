@@ -3,45 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis Results</title>
+    <title>Extracted Text Result</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F7FAFC;
+            color: #2D3748;
+        }
+
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 1rem;
         }
+
+        .card {
+            background-color: #FFFFFF;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
-<body class="bg-gray-100">
+<body>
     <div class="container mx-auto px-4 py-8">
         <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-800">Analysis Results</h1>
+            <h1 class="text-4xl font-bold text-gray-800">Extracted Text</h1>
         </header>
-        <div class="card p-6 bg-white shadow-md rounded-lg">
-            <h2 class="text-2xl font-semibold mb-4 text-primary">Extracted Text</h2>
-            <pre id="extractedText" class="bg-gray-100 p-4 rounded border border-gray-300"></pre>
-            <h2 class="text-2xl font-semibold mt-6 mb-4 text-primary">Form Data</h2>
-            <div id="formData" class="bg-gray-100 p-4 rounded border border-gray-300"></div>
+        <div class="card">
+            <h2 class="text-2xl font-semibold mb-4">Extracted Text from PDF</h2>
+            <div id="text-content"></div>
         </div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/api/get-latest-entry')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('extractedText').textContent = data.extractedText;
-                        const formDataElement = document.getElementById('formData');
-                        formDataElement.innerHTML = Object.entries(data.formData).map(([key, value]) => `<p><strong>${key}:</strong> ${value}</p>`).join('');
-                    } else {
-                        document.getElementById('extractedText').textContent = 'Failed to load data.';
-                    }
-                })
-                .catch(error => {
-                    document.getElementById('extractedText').textContent = 'An error occurred.';
-                    console.error('Error fetching data:', error);
-                });
+        document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const extractedText = urlParams.get('extractedText');
+            const textContentDiv = document.getElementById('text-content');
+
+            if (extractedText) {
+                textContentDiv.textContent = decodeURIComponent(extractedText);
+            } else {
+                textContentDiv.textContent = 'No extracted text available.';
+            }
         });
     </script>
 </body>
