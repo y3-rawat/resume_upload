@@ -65,6 +65,12 @@ module.exports = async (req, res) => {
                 }
 
                 const uri = process.env.MONGODB_URI;
+                if (!uri) {
+                    console.error("MongoDB URI is not set");
+                    res.status(500).json({ success: false, message: 'Server configuration error' });
+                    return resolve();
+                }
+
                 console.log("Attempting to connect to MongoDB...");
                 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -75,8 +81,14 @@ module.exports = async (req, res) => {
                     const collection = database.collection('items');
 
                     // Extract text from the PDF
-                    const pdfData = await pdfParse(fileBuffer);
-                    const extractedText = pdfData.text || '';
+                    let extractedText = '';
+                    try {
+                        const pdfData = await pdfParse(fileBuffer);
+                        extractedText = pdfData.text || '';
+                    } catch (pdfError) {
+                        console.error("Error parsing PDF:", pdfError.message);
+                        extractedText = 'Error extracting text from PDF';
+                    }
 
                     console.log("Inserting document into MongoDB...");
                     const result = await collection.insertOne({
@@ -87,7 +99,7 @@ module.exports = async (req, res) => {
                         job_description: job_description,
                         additional_information: additional_information,
                         experience: experience,
-                        formData: formData // Save form data as well
+                        formData: formData
                     });
 
                     console.log("File successfully uploaded to MongoDB", result);
@@ -98,14 +110,22 @@ module.exports = async (req, res) => {
                     try {
                         const apiResponse = await axios.get(externalApiUrl);
                         console.log("External API response:", apiResponse.data);
-                        res.status(200).json({ success: true, extractedText: extractedText, apiResponse: apiResponse.data });
+                        
+                        // Redirect to result.html with query parameters
+                        const redirectUrl = `/result.html?success=true&extractedText=${encodeURIComponent(extractedText)}&apiResponse=${encodeURIComponent(JSON.stringify(apiResponse.data))}`;
+                        res.writeHead(302, { Location: redirectUrl });
+                        res.end();
                     } catch (apiError) {
                         console.error("Error calling external API:", apiError.message);
-                        res.status(500).json({ success: false, message: 'Failed to call external API', error: apiError.message });
+                        const redirectUrl = `/result.html?success=false&errorMessage=${encodeURIComponent(apiError.message)}`;
+                        res.writeHead(302, { Location: redirectUrl });
+                        res.end();
                     }
                 } catch (error) {
                     console.error("Error uploading file to MongoDB:", error.message);
-                    res.status(500).json({ success: false, message: 'Failed to save to database', error: error.message });
+                    const redirectUrl = `/result.html?success=false&errorMessage=${encodeURIComponent(error.message)}`;
+                    res.writeHead(302, { Location: redirectUrl });
+                    res.end();
                 } finally {
                     await client.close();
                     console.log("MongoDB connection closed");
@@ -115,7 +135,9 @@ module.exports = async (req, res) => {
 
             busboy.on('error', (error) => {
                 console.error("Busboy error:", error.message);
-                res.status(500).json({ success: false, message: 'File processing error', error: error.message });
+                const redirectUrl = `/result.html?success=false&errorMessage=${encodeURIComponent(error.message)}`;
+                res.writeHead(302, { Location: redirectUrl });
+                res.end();
                 resolve();
             });
 
