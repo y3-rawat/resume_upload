@@ -3,49 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extracted Text Result</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>File Upload Result</title>
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #F7FAFC;
-            color: #2D3748;
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
         }
-
         .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 1rem;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-
-        .card {
-            background-color: #FFFFFF;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        h1 {
+            color: #333;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .error {
+            color: #F44336;
+        }
+        pre {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .api-response {
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container mx-auto px-4 py-8">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-800">Extracted Text</h1>
-        </header>
-        <div class="card">
-            <h2 class="text-2xl font-semibold mb-4">Extracted Text from PDF</h2>
-            <div id="text-content"></div>
-        </div>
+    <div class="container">
+        <h1 id="result-title"></h1>
+        <p id="result-message"></p>
+        <div id="extracted-text" class="api-response"></div>
+        <div id="api-response" class="api-response"></div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Assuming the server response is available as a query parameter in the URL
             const urlParams = new URLSearchParams(window.location.search);
-            const extractedText = urlParams.get('extractedText');
-            const textContentDiv = document.getElementById('text-content');
+            const success = urlParams.get('success') === 'true';
+            const extractedText = decodeURIComponent(urlParams.get('extractedText') || '');
+            const apiResponse = decodeURIComponent(urlParams.get('apiResponse') || '');
 
-            if (extractedText) {
-                textContentDiv.textContent = decodeURIComponent(extractedText);
+            const resultTitle = document.getElementById('result-title');
+            const resultMessage = document.getElementById('result-message');
+            const extractedTextElement = document.getElementById('extracted-text');
+            const apiResponseElement = document.getElementById('api-response');
+
+            if (success) {
+                resultTitle.textContent = 'Upload Successful';
+                resultMessage.classList.add('success');
+                resultMessage.textContent = 'Your file has been successfully uploaded and processed.';
+                extractedTextElement.innerHTML = `<h2>Extracted Text:</h2><pre>${extractedText}</pre>`;
+                apiResponseElement.innerHTML = `<h2>API Response:</h2><pre>${apiResponse}</pre>`;
             } else {
-                textContentDiv.textContent = 'No extracted text available.';
+                resultTitle.textContent = 'Upload Failed';
+                resultMessage.classList.add('error');
+                resultMessage.textContent = 'There was an error processing your file. Please try again.';
             }
         });
     </script>

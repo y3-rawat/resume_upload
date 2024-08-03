@@ -2,6 +2,7 @@ const { MongoClient, Binary } = require('mongodb');
 const Busboy = require('busboy');
 const cors = require('cors');
 const pdfParse = require('pdf-parse');
+const axios = require('axios');
 
 module.exports = async (req, res) => {
     console.log("Handler started, method:", req.method);
@@ -82,8 +83,6 @@ module.exports = async (req, res) => {
                         filename: fileName,
                         filetype: fileType,
                         filedata: new Binary(fileBuffer),
-
-                        
                         extractedText: extractedText,
                         job_description: job_description,
                         additional_information: additional_information,
@@ -92,7 +91,18 @@ module.exports = async (req, res) => {
                     });
 
                     console.log("File successfully uploaded to MongoDB", result);
-                    res.status(200).json({ success: true, extractedText: extractedText });
+
+                    // Call the external API
+                    const externalApiUrl = `https://resume-test-api.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}`;
+
+                    try {
+                        const apiResponse = await axios.get(externalApiUrl);
+                        console.log("External API response:", apiResponse.data);
+                        res.status(200).json({ success: true, extractedText: extractedText, apiResponse: apiResponse.data });
+                    } catch (apiError) {
+                        console.error("Error calling external API:", apiError);
+                        res.status(500).json({ success: false, message: 'Failed to call external API', error: apiError.message });
+                    }
                 } catch (error) {
                     console.error("Error uploading file to MongoDB:", error);
                     res.status(500).json({ success: false, message: 'Failed to save to database', error: error.message });
