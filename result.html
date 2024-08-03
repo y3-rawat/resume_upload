@@ -46,6 +46,7 @@
         <p id="result-message"></p>
         <div id="extracted-text" class="api-response"></div>
         <div id="api-response" class="api-response"></div>
+        <a href="/" id="retry-link" style="display:none;">Try Again</a>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -54,11 +55,13 @@
             const success = urlParams.get('success') === 'true';
             const extractedText = decodeURIComponent(urlParams.get('extractedText') || '');
             const apiResponse = decodeURIComponent(urlParams.get('apiResponse') || '');
+            const errorMessage = decodeURIComponent(urlParams.get('errorMessage') || '');
 
             const resultTitle = document.getElementById('result-title');
             const resultMessage = document.getElementById('result-message');
             const extractedTextElement = document.getElementById('extracted-text');
             const apiResponseElement = document.getElementById('api-response');
+            const retryLink = document.getElementById('retry-link');
 
             if (success) {
                 resultTitle.textContent = 'Upload Successful';
@@ -66,10 +69,15 @@
                 resultMessage.textContent = 'Your file has been successfully uploaded and processed.';
                 extractedTextElement.innerHTML = `<h2>Extracted Text:</h2><pre>${extractedText}</pre>`;
                 apiResponseElement.innerHTML = `<h2>API Response:</h2><pre>${apiResponse}</pre>`;
+                retryLink.style.display = 'none'; // Hide retry link if successful
             } else {
                 resultTitle.textContent = 'Upload Failed';
                 resultMessage.classList.add('error');
                 resultMessage.textContent = 'There was an error processing your file. Please try again.';
+                if (errorMessage) {
+                    extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
+                }
+                retryLink.style.display = 'block'; // Show retry link if there's an error
             }
         });
     </script>

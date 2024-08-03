@@ -100,11 +100,11 @@ module.exports = async (req, res) => {
                         console.log("External API response:", apiResponse.data);
                         res.status(200).json({ success: true, extractedText: extractedText, apiResponse: apiResponse.data });
                     } catch (apiError) {
-                        console.error("Error calling external API:", apiError);
+                        console.error("Error calling external API:", apiError.message);
                         res.status(500).json({ success: false, message: 'Failed to call external API', error: apiError.message });
                     }
                 } catch (error) {
-                    console.error("Error uploading file to MongoDB:", error);
+                    console.error("Error uploading file to MongoDB:", error.message);
                     res.status(500).json({ success: false, message: 'Failed to save to database', error: error.message });
                 } finally {
                     await client.close();
@@ -114,7 +114,7 @@ module.exports = async (req, res) => {
             });
 
             busboy.on('error', (error) => {
-                console.error("Busboy error:", error);
+                console.error("Busboy error:", error.message);
                 res.status(500).json({ success: false, message: 'File processing error', error: error.message });
                 resolve();
             });
@@ -124,6 +124,6 @@ module.exports = async (req, res) => {
     } else {
         // Method not allowed for other HTTP methods
         console.log("Method not allowed:", req.method);
-        return res.status(405).json({ success: false, message: 'Method not allowed' });
+        res.status(405).json({ success: false, message: 'Method not allowed' });
     }
 };
