@@ -106,21 +106,33 @@ module.exports = async (req, res) => {
 
                     // Call the external API
                     const externalApiUrl = `https://resume-test-api.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}`;
-
+                    const apiResponse = await axios.post(externalApiUrl, {
+                        fileName: fileName,
+                        fileType: fileType,
+                        job_description: job_description,
+                        additional_information: additional_information,
+                        experience: experience
+                      });
                     try {
-                        const apiResponse = await axios.get(externalApiUrl);
+                        const apiResponse = await axios.post(externalApiUrl, {fileName: fileName,
+                            fileType: fileType,
+                            job_description: job_description,
+                            additional_information: additional_information,
+                            experience: experience});
+
                         console.log("External API response:", apiResponse.data);
                         
                         // Redirect to result.html with query parameters
                         const redirectUrl = `/result.html?success=true&extractedText=${encodeURIComponent(extractedText)}&apiResponse=${encodeURIComponent(JSON.stringify(apiResponse.data))}`;
                         res.writeHead(302, { Location: redirectUrl });
                         res.end();
-                    } catch (apiError) {
-                        console.error("Error calling external API:", apiError.message);
-                        const redirectUrl = `/result.html?success=false&errorMessage=${encodeURIComponent(apiError.message)}`;
+                    }catch (apiError) {
+                        console.error("Error calling external API:", apiError.response ? apiError.response.data : apiError.message);
+                        const errorMessage = apiError.response ? JSON.stringify(apiError.response.data) : apiError.message;
+                        const redirectUrl = `/result.html?success=false&errorMessage=${encodeURIComponent(errorMessage)}`;
                         res.writeHead(302, { Location: redirectUrl });
                         res.end();
-                    }
+                      }
                 } catch (error) {
                     console.error("Error uploading file to MongoDB:", error.message);
                     const redirectUrl = `/result.html?success=false&errorMessage=${encodeURIComponent(error.message)}`;
