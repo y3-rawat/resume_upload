@@ -285,21 +285,32 @@
 
         xhr.addEventListener('load', function () {
             if (xhr.status === 200) {
-                updateStatus('File uploaded successfully!', 'green');
-                fileInfo.textContent = 'File uploaded successfully!';
-                fileInfo.classList.remove('hidden');
+                updateStatus('File uploaded successfully! Redirecting...', 'green');
+                // Check if the response is a redirect
+                if (xhr.responseURL !== xhr.url) {
+                    // If it's a redirect, navigate to the new URL
+                    window.location.href = xhr.responseURL;
+                } else {
+                    // If it's not a redirect, parse the response and redirect manually
+                    try {
+                        let response = JSON.parse(xhr.responseText);
+                        if (response.redirectUrl) {
+                            window.location.href = response.redirectUrl;
+                        } else {
+                            updateStatus('Upload successful, but no redirect information received.', 'blue');
+                        }
+                    } catch (error) {
+                        updateStatus('Upload successful, but failed to parse server response.', 'orange');
+                    }
+                }
             } else {
                 updateStatus('Failed to upload file. Server responded with status ' + xhr.status, 'red');
-                fileInfo.textContent = 'Failed to upload file.';
-                fileInfo.classList.remove('hidden');
             }
             progressBar.style.width = '0%';
         });
 
         xhr.addEventListener('error', function () {
             updateStatus('An error occurred while uploading the file.', 'red');
-            fileInfo.textContent = 'An error occurred while uploading the file.';
-            fileInfo.classList.remove('hidden');
             progressBar.style.width = '0%';
         });
 
@@ -313,7 +324,6 @@
         statusDiv.style.color = color;
     }
 });
-
         </script>
         
 </body>
