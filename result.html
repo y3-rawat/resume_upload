@@ -48,38 +48,58 @@
         <div id="api-response" class="api-response"></div>
         <a href="/" id="retry-link" style="display:none;">Try Again</a>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Assuming the server response is available as a query parameter in the URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const success = urlParams.get('success') === 'true';
-            const extractedText = decodeURIComponent(urlParams.get('extractedText') || '');
-            const apiResponse = decodeURIComponent(urlParams.get('apiResponse') || '');
-            const errorMessage = decodeURIComponent(urlParams.get('errorMessage') || '');
-
-            const resultTitle = document.getElementById('result-title');
-            const resultMessage = document.getElementById('result-message');
-            const extractedTextElement = document.getElementById('extracted-text');
-            const apiResponseElement = document.getElementById('api-response');
-            const retryLink = document.getElementById('retry-link');
-
-            if (success) {
+    
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const safeDecodeURIComponent = (str) => {
+            if (!str) return '';
+            try {
+                return decodeURIComponent(str.replace(/\+/g, ' '));
+            } catch (e) {
+                console.error("Error decoding:", str, e);
+                return str; // Return the original string if decoding fails
+            }
+        };
+    
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success') === 'true';
+    
+        const resultTitle = document.getElementById('result-title');
+        const resultMessage = document.getElementById('result-message');
+        const extractedTextElement = document.getElementById('extracted-text');
+        const apiResponseElement = document.getElementById('api-response');
+        const retryLink = document.getElementById('retry-link');
+    
+        if (success) {
+            try {
+                const extractedText = safeDecodeURIComponent(urlParams.get('extractedText'));
+                const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
+                const apiResponse = JSON.parse(apiResponseStr);
+    
                 resultTitle.textContent = 'Upload Successful';
                 resultMessage.classList.add('success');
                 resultMessage.textContent = 'Your file has been successfully uploaded and processed.';
                 extractedTextElement.innerHTML = `<h2>Extracted Text:</h2><pre>${extractedText}</pre>`;
-                apiResponseElement.innerHTML = `<h2>API Response:</h2><pre>${apiResponse}</pre>`;
-                retryLink.style.display = 'none'; // Hide retry link if successful
-            } else {
-                resultTitle.textContent = 'Upload Failed';
+                apiResponseElement.innerHTML = `<h2>API Response:</h2><pre>${JSON.stringify(apiResponse, null, 2)}</pre>`;
+                retryLink.style.display = 'none';
+            } catch (error) {
+                console.error("Error processing success response:", error);
+                resultTitle.textContent = 'Processing Error';
                 resultMessage.classList.add('error');
-                resultMessage.textContent = 'There was an error processing your file. Please try again.';
-                if (errorMessage) {
-                    extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
-                }
-                retryLink.style.display = 'block'; // Show retry link if there's an error
+                resultMessage.textContent = "An error occurred while processing the response.";
+                retryLink.style.display = 'block';
             }
-        });
+        } else {
+            const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
+            resultTitle.textContent = 'Upload Failed';
+            resultMessage.classList.add('error');
+            resultMessage.textContent = 'There was an error processing your file. Please try again.';
+            if (errorMessage) {
+                extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
+            }
+            retryLink.style.display = 'block';
+        }
+    });
     </script>
 </body>
 </html>

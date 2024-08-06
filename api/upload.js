@@ -4,6 +4,13 @@ const cors = require('cors');
 const pdfParse = require('pdf-parse');
 const axios = require('axios');
 
+
+const safeEncodeURIComponent = (str) => {
+    return encodeURIComponent(str).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16));
+  };
+
+
+
 module.exports = async (req, res) => {
     console.log("Handler started, method:", req.method);
 
@@ -56,6 +63,8 @@ module.exports = async (req, res) => {
                 }
                 formData[fieldname] = val;
             });
+
+
 
             busboy.on('finish', async () => {
                 if (!fileBuffer) {
@@ -113,31 +122,41 @@ module.exports = async (req, res) => {
                         additional_information: additional_information,
                         experience: experience
                       });
-                    try {
-                        const apiResponse = await axios.post(externalApiUrl, {fileName: fileName,
+                      try {
+                        const apiResponse = await axios.post(externalApiUrl, {
+                            fileName: fileName,
                             fileType: fileType,
                             job_description: job_description,
                             additional_information: additional_information,
-                            experience: experience});
-
+                            experience: experience
+                        });
+                    
                         console.log("External API response:", apiResponse.data);
-                        
-                        // Redirect to result.html with query parameters
-                        const redirectUrl = `/result.html?success=true&extractedText=${encodeURIComponent(extractedText)}&apiResponse=${encodeURIComponent(JSON.stringify(apiResponse.data))}`;
+                        const safeExtractedText = safeEncodeURIComponent(extractedText);
+                        const safeApiResponse = safeEncodeURIComponent(JSON.stringify(apiResponse.data));
+                    
+                        // Use safeExtractedText and safeApiResponse in the redirect URL
+                        const redirectUrl = `/result.html?success=true&extractedText=${safeExtractedText}&apiResponse=${safeApiResponse}`;
+                        console.log("Redirect URL:", redirectUrl);
+                    
                         res.writeHead(302, { Location: redirectUrl });
                         res.end();
-                    }catch (apiError) {
+                    } catch (apiError) {
                         console.error("Error calling external API:", apiError.response ? apiError.response.data : apiError.message);
                         const errorMessage = apiError.response ? JSON.stringify(apiError.response.data) : apiError.message;
-                        const redirectUrl = `/result.html?success=false&errorMessage=${encodeURIComponent(errorMessage)}`;
+                        const safeErrorMessage = safeEncodeURIComponent(errorMessage);
+                        const redirectUrl = `/result.html?success=false&errorMessage=${safeErrorMessage}`;
                         res.writeHead(302, { Location: redirectUrl });
                         res.end();
-                      }
+                    }
+                    
                 } catch (error) {
-                    console.error("Error uploading file to MongoDB:", error.message);
-                    const redirectUrl = `/result.html?success=false&errorMessage=${encodeURIComponent(error.message)}`;
+                    console.error("Error processing request:", error);
+                    const safeErrorMessage = safeEncodeURIComponent(error.message);
+                    const redirectUrl = `/result.html?success=false&errorMessage=${safeErrorMessage}`;
                     res.writeHead(302, { Location: redirectUrl });
                     res.end();
+                  
                 } finally {
                     await client.close();
                     console.log("MongoDB connection closed");
