@@ -789,7 +789,8 @@
 
 
                     </section>
-
+                    <h1 id="result-title"></h1>
+                    <p id="result-message"></p>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
                         style="margin-top: 2%;">
@@ -1163,12 +1164,6 @@
 
                 createExperienceRelevanceChart(data.experience_relevance);
 
-                
-    
-                resultTitle.textContent = 'Upload Successful';
-                resultMessage.classList.add('success');
-                resultMessage.textContent = 'Your file has been successfully uploaded and processed.';
-                extractedTextElement.innerHTML = `<h2>Extracted Text:</h2><pre>${extractedText}</pre>`;
                 
                 retryLink.style.display = 'none';
             } catch (error) {
