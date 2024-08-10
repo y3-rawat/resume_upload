@@ -1158,7 +1158,7 @@
                 const extractedText = safeDecodeURIComponent(urlParams.get('extractedText'));
                 const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
                 const data = JSON.parse(apiResponseStr);
-
+                console.log(data,"this is the data")
                 initActionableRecommendations(data["Actionable Recommendations"]);
 
                 createExperienceRelevanceChart(data.experience_relevance);
