@@ -1136,15 +1136,27 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const safeDecodeURIComponent = (str) => {
-            if (!str) return '';
-            try {
-                return decodeURIComponent(str.replace(/\+/g, ' '));
-            } catch (e) {
-                console.error("Error decoding:", str, e);
-                return str; // Return the original string if decoding fails
-            }
-        };
-    
+    if (!str) return '';
+    try {
+        return decodeURIComponent(str.replace(/\+/g, ' '));
+    } catch (e) {
+        console.error("Error decoding:", str, e);
+        return str;
+    }
+};
+const getColor = (score) => {
+    if (score < 40) {
+        const factor = score / 40;
+        return `rgb(255, ${Math.round(65 + 155 * factor)}, ${Math.round(54 + 166 * factor)})`;
+    } else if (score < 70) {
+        const factor = (score - 40) / 30;
+        return `rgb(${Math.round(255 - 209 * factor) + 40}, ${Math.round(220 - 16 * factor) - 26}, ${Math.round(0 + 64 * factor) - 18})`;
+    } else {
+        const factor = (score - 70) / 30;
+        return `rgb(${Math.round(46 - 46 * factor) + 28}, ${Math.round(204 - 51 * factor) - 26}, ${Math.round(64 + 191 * factor) - 216})`;
+    }
+};
+
         const urlParams = new URLSearchParams(window.location.search);
         const success = urlParams.get('success') === 'true';
     
@@ -1425,22 +1437,87 @@
         retryLink.style.display = 'block';
     }
 });
+function updateScoreCards(scoreCard) {
+    Object.entries(scoreCard).forEach(([id, scoreData]) => {
+        if (!scoreData) {
+            console.error(`No score data provided for ${id}`);
+            return;
+        }
+
+        const elements = {
+            score: document.getElementById(`${id}Score`),
+            progressCircle: document.getElementById(`${id}ProgressCircle`),
+            description: document.getElementById(`${id}Description`),
+            reason: document.getElementById(`${id}Reason`),
+            improvementTip: document.getElementById(`${id}ImprovementTip`)
+        };
+
+        // Check if all required elements exist
+        if (Object.values(elements).some(el => !el)) {
+            console.error(`Missing elements for ${id}`);
+            return;
+        }
+
+        const targetScore = scoreData.score;
+        const circumference = 2 * Math.PI * 54;
+
+        elements.progressCircle.style.strokeDasharray = circumference;
+        elements.progressCircle.style.strokeDashoffset = circumference;
+
+        animateScore(elements.score, elements.progressCircle, targetScore, circumference);
+
+        elements.description.textContent = scoreData.description;
+        elements.reason.textContent = scoreData.reason;
+        elements.improvementTip.textContent = scoreData.improvementTip;
+    });
+}
+
+function animateScore(scoreElement, progressCircle, targetScore, circumference) {
+    let currentScore = 0;
+    const duration = 2000;
+    const startTime = performance.now();
+
+    function animate(currentTime) {
+        const elapsedTime = currentTime - startTime;
+        if (elapsedTime < duration) {
+            const progress = easeOutQuad(elapsedTime / duration);
+            currentScore = Math.min(Math.floor(progress * targetScore), targetScore);
+            scoreElement.textContent = currentScore + '%';
+
+            const fillPercentage = currentScore / 100;
+            const dashoffset = circumference * (1 - fillPercentage);
+            progressCircle.style.strokeDashoffset = dashoffset;
+
+            const color = getColor(currentScore);
+            progressCircle.style.stroke = color;
+
+            requestAnimationFrame(animate);
+        } else {
+            scoreElement.textContent = targetScore + '%';
+        }
+    }
+
+    requestAnimationFrame(animate);
+}
+
+function easeOutQuad(t) {
+    return t * (2 - t);
+}
 
         
-
-  
 function initDashboard(data) {
-    createExperienceRelevanceChart(data);
-    initRecommendations(data);
-    initSkillsAnalysis(data);
-    createProjectImpactChart(data);
-    createCourseImpactChart(data);
-    initStrengthsWeaknesses(data);
-    initCourseSuggestions(data);
+    updateScoreCards(data.score_card);
+    createExperienceRelevanceChart(data.experience_relevance);
+    initRecommendations(data.recommendations);
+    initSkillsAnalysis(data.skill_Score);
+    createProjectImpactChart(data.project_impact);
+    createCourseImpactChart(data.course_impact);
+    initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
+    initCourseSuggestions(data.course_impact);
     initRecommendedPeople(data.recommended_People_linkdin, 'recommendedPeopleList');
     initRecommendedPeople(data.recommendedPeople_instagram, 'recommendedPeopleInstagramList');
     initRecommendedPeople(data.recommendedPeople_twitter, 'recommendedPeopleTwitterList');
-
+}
 
         function initCourseSuggestions(data) {
             const suggestionsList = document.getElementById('courseSuggestionsList');
