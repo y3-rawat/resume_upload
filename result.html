@@ -1313,8 +1313,8 @@
     const circumference = 2 * Math.PI * 54;
 
 
-            progressCircle.style.strokeDasharray = circumference;
-            progressCircle.style.strokeDashoffset = circumference;
+    elements.progressCircle.style.strokeDasharray = circumference;
+    elements.progressCircle.style.strokeDashoffset = circumference;
 
             let currentScore = 0;
             const duration = 2000; // 2 seconds
@@ -1361,9 +1361,9 @@
 
             requestAnimationFrame(animateScore);
 
-            descriptionElement.textContent = data.description;
-            reasonElement.textContent = data.reason;
-            improvementTipElement.textContent = data.improvementTip;
+            elements.description.textContent = scoreData.description;
+    elements.reason.textContent = scoreData.reason;
+    elements.improvementTip.textContent = scoreData.improvementTip;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
