@@ -1361,15 +1361,13 @@
 
             requestAnimationFrame(animateScore);
 
-            elements.description.textContent = scoreData.description;
-    elements.reason.textContent = scoreData.reason;
-    elements.improvementTip.textContent = scoreData.improvementTip;
+            descriptionElement.textContent = data.description;
+            reasonElement.textContent = data.reason;
+            improvementTipElement.textContent = data.improvementTip;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const scoreCard1 = data.score_card;
-            const scoreCard = element.data.score_card;
-            console.log(scoreCard,"scoreCard")
+            const scoreCard = data.score_card;
             Object.entries(scoreCard).forEach(([key, value]) => {
                 updateScore(key, value);
             });
@@ -1441,6 +1439,7 @@ function initDashboard(data) {
     initRecommendedPeople(data.recommendedPeople_instagram, 'recommendedPeopleInstagramList');
     initRecommendedPeople(data.recommendedPeople_twitter, 'recommendedPeopleTwitterList');
 
+    
 
         function initCourseSuggestions(data) {
             const suggestionsList = document.getElementById('courseSuggestionsList');
