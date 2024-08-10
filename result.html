@@ -1287,23 +1287,17 @@
         }
 
 
+        function updateScore(id, scoreData) {
+    const scoreElement = document.getElementById(`${id}Score`);
+    const progressCircle = document.getElementById(`${id}ProgressCircle`);
+    const descriptionElement = document.getElementById(`${id}Description`);
+    const reasonElement = document.getElementById(`${id}Reason`);
+    const improvementTipElement = document.getElementById(`${id}ImprovementTip`);
 
-        
- 
-
-        function updateScore(id, data) {
-
-            const scoreElement = document.getElementById(`${id}Score`);
-            const progressCircle = document.getElementById(`${id}ProgressCircle`);
-            const descriptionElement = document.getElementById(`${id}Description`);
-            const reasonElement = document.getElementById(`${id}Reason`);
-            const improvementTipElement = document.getElementById(`${id}ImprovementTip`);
-
-            if (!scoreElement || !progressCircle || !descriptionElement || !reasonElement || !improvementTipElement) {
-                console.error(`Missing elements for ${id}`);
-                return;
-            }
-
+    if (!scoreElement || !progressCircle || !descriptionElement || !reasonElement || !improvementTipElement) {
+        console.error(`Missing elements for ${id}`);
+        return;
+    }
             const targetScore = data.score;
             const circumference = 2 * Math.PI * 54;
 
@@ -1369,72 +1363,70 @@
 
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-        const safeDecodeURIComponent = (str) => {
-            if (!str) return '';
-            try {
-                return decodeURIComponent(str.replace(/\+/g, ' '));
-            } catch (e) {
-                console.error("Error decoding:", str, e);
-                return str; // Return the original string if decoding fails
-            }
-        };
-    
-        const urlParams = new URLSearchParams(window.location.search);
-        const success = urlParams.get('success') === 'true';
-    
-        const resultTitle = document.getElementById('result-title');
-        const resultMessage = document.getElementById('result-message');
-        const extractedTextElement = document.getElementById('extracted-text');
-        const apiResponseElement = document.getElementById('api-response');
-        const retryLink = document.getElementById('retry-link');
-        let data;
-        if (success) {
-            try {
-                const extractedText = safeDecodeURIComponent(urlParams.get('extractedText'));
-                const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
-                const data = JSON.parse(apiResponseStr);
+      document.addEventListener('DOMContentLoaded', function() {
+    const safeDecodeURIComponent = (str) => {
+        if (!str) return '';
+        try {
+            return decodeURIComponent(str.replace(/\+/g, ' '));
+        } catch (e) {
+            console.error("Error decoding:", str, e);
+            return str; // Return the original string if decoding fails
+        }
+    };
 
-                console.log("talking from api responce1 ",apiResponse)
-    
-                initDashboard();
-            } catch (error) {
-                console.error("Error processing success response:", error);
-                resultTitle.textContent = 'Processing Error';
-                resultMessage.classList.add('error');
-                resultMessage.textContent = "An error occurred while processing the response.";
-                retryLink.style.display = 'block';
-            }
-        } else {
-            const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
-            resultTitle.textContent = 'Upload Failed';
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success') === 'true';
+
+    const resultTitle = document.getElementById('result-title');
+    const resultMessage = document.getElementById('result-message');
+    const extractedTextElement = document.getElementById('extracted-text');
+    const apiResponseElement = document.getElementById('api-response');
+    const retryLink = document.getElementById('retry-link');
+
+    if (success) {
+        try {
+            const extractedText = safeDecodeURIComponent(urlParams.get('extractedText'));
+            const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
+            const data = JSON.parse(apiResponseStr);
+
+            console.log("API Response:", data);
+
+            initDashboard(data);
+        } catch (error) {
+            console.error("Error processing success response:", error);
+            resultTitle.textContent = 'Processing Error';
             resultMessage.classList.add('error');
-            resultMessage.textContent = 'There was an error processing your file. Please try again.';
-            if (errorMessage) {
-                extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
-            }
+            resultMessage.textContent = "An error occurred while processing the response.";
             retryLink.style.display = 'block';
         }
-    });
+    } else {
+        const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
+        resultTitle.textContent = 'Upload Failed';
+        resultMessage.classList.add('error');
+        resultMessage.textContent = 'There was an error processing your file. Please try again.';
+        if (errorMessage) {
+            extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
+        }
+        retryLink.style.display = 'block';
+    }
+});
+
         
 
   
+function initDashboard(data) {
+    createExperienceRelevanceChart(data);
+    initRecommendations(data);
+    initSkillsAnalysis(data);
+    createProjectImpactChart(data);
+    createCourseImpactChart(data);
+    initStrengthsWeaknesses(data);
+    initCourseSuggestions(data);
+    initRecommendedPeople(data.recommended_People_linkdin, 'recommendedPeopleList');
+    initRecommendedPeople(data.recommendedPeople_instagram, 'recommendedPeopleInstagramList');
+    initRecommendedPeople(data.recommendedPeople_twitter, 'recommendedPeopleTwitterList');
 
-        function initDashboard() {
-            createExperienceRelevanceChart(data);
-            initRecommendations();
-            initSkillsAnalysis();
-            createProjectImpactChart();
-            createCourseImpactChart();
-            initStrengthsWeaknesses();
-            initCourseSuggestions(data); // Add this line
-            initRecommendedPeople(data.recommended_People_linkdin, 'recommendedPeopleList');
-            initRecommendedPeople(data.recommendedPeople_instagram, 'recommendedPeopleInstagramList');
-            initRecommendedPeople(data.recommendedPeople_twitter, 'recommendedPeopleTwitterList');
-
-
-
-        }
+    
 
         function initCourseSuggestions(data) {
             const suggestionsList = document.getElementById('courseSuggestionsList');
@@ -1690,26 +1682,22 @@
 
         document.addEventListener('DOMContentLoaded', initDashboard);
 
-        document.addEventListener('DOMContentLoaded', function () {
-            fetch('/data')
-                .then(response => response.json())
-                .then(data => {
-                    const scoreCard = data.score_card;
-                    Object.keys(scoreCard).forEach(key => {
-                        updateScore(key, scoreCard[key]);
-                    });
 
-                    // Call other initialization functions here
-                    initSkillsAnalysis(data.skill_Score);
-                    createProjectImpactChart(data.project_impact);
-                    initRecommendations(data.recommendations);
+        const scoreCard = data.score_card;
+    Object.keys(scoreCard).forEach(key => {
+        updateScore(key, scoreCard[key]);
+    });
+}
+            // Call other initialization functions here
+            initSkillsAnalysis(data.skill_Score);
+            createProjectImpactChart(data.project_impact);
+            initRecommendations(data.recommendations);
 
-                    initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
-                    createCourseImpactChart(data.course_impact);
+            initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
+            createCourseImpactChart(data.course_impact);
 
-                })
-                .catch(error => console.error('Error fetching data:', error));
-        });
+    
+        
 
         document.addEventListener('DOMContentLoaded', fetchData);
 
