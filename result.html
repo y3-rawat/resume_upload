@@ -1367,7 +1367,9 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const scoreCard = data.score_card;
+            const scoreCard1 = data.score_card;
+            const scoreCard = element.data.score_card;
+            console.log(scoreCard,"scoreCard")
             Object.entries(scoreCard).forEach(([key, value]) => {
                 updateScore(key, value);
             });
