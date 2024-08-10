@@ -48,7 +48,7 @@
         <div id="api-response" class="api-response"></div>
         <a href="/" id="retry-link" style="display:none;">Try Again</a>
     </div>
-    
+   
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const safeDecodeURIComponent = (str) => {
@@ -75,6 +75,8 @@
                 const extractedText = safeDecodeURIComponent(urlParams.get('extractedText'));
                 const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
                 const apiResponse = JSON.parse(apiResponseStr);
+
+                console.log("talking from api responce ",apiResponse)
     
                 resultTitle.textContent = 'Upload Successful';
                 resultMessage.classList.add('success');
