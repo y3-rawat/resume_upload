@@ -789,7 +789,8 @@
 
 
                     </section>
-
+                    <h1 id="result-title"></h1>
+                    <p id="result-message"></p>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
                         style="margin-top: 2%;">
@@ -1131,6 +1132,60 @@
 
     </section>
 
+    
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const safeDecodeURIComponent = (str) => {
+            if (!str) return '';
+            try {
+                return decodeURIComponent(str.replace(/\+/g, ' '));
+            } catch (e) {
+                console.error("Error decoding:", str, e);
+                return str; // Return the original string if decoding fails
+            }
+        };
+    
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success') === 'true';
+    
+        const resultTitle = document.getElementById('result-title');
+        const resultMessage = document.getElementById('result-message');
+        const extractedTextElement = document.getElementById('extracted-text');
+        const apiResponseElement = document.getElementById('api-response');
+        const retryLink = document.getElementById('retry-link');
+    
+        if (success) {
+            try {
+                const extractedText = safeDecodeURIComponent(urlParams.get('extractedText'));
+                const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
+                const data = JSON.parse(apiResponseStr);
+
+                initActionableRecommendations(data["Actionable Recommendations"]);
+
+                createExperienceRelevanceChart(data.experience_relevance);
+
+                
+                retryLink.style.display = 'none';
+            } catch (error) {
+                console.error("Error processing success response:", error);
+                resultTitle.textContent = 'Processing Error';
+                resultMessage.classList.add('error');
+                resultMessage.textContent = "An error occurred while processing the response.";
+                retryLink.style.display = 'block';
+            }
+        } else {
+            const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
+            resultTitle.textContent = 'Upload Failed';
+            resultMessage.classList.add('error');
+            resultMessage.textContent = 'There was an error processing your file. Please try again.';
+            if (errorMessage) {
+                extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
+            }
+            retryLink.style.display = 'block';
+        }
+    });
+    </script>
+
     <script>   
 
         function initActionableRecommendations(recommendations) {
@@ -1231,36 +1286,35 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            fetch('/data')
-                .then(response => response.json())
-                .then(data => {
 
+        function updateScore(id, scoreData) {
+            console.log("id,data",data)
+    if (!scoreData) {
 
-                    initActionableRecommendations(data["Actionable Recommendations"]);
+        console.error(`No score data provided for ${id}`);
+        return;
+    }
 
-                    createExperienceRelevanceChart(data.experience_relevance);
+    const elements = {
+        score: document.getElementById(`${id}Score`),
+        progressCircle: document.getElementById(`${id}ProgressCircle`),
+        description: document.getElementById(`${id}Description`),
+        reason: document.getElementById(`${id}Reason`),
+        improvementTip: document.getElementById(`${id}ImprovementTip`)
+    };
 
+    // Check if all required elements exist
+    for (const [key, element] of Object.entries(elements)) {
+        if (!element) {
+            console.error(`Missing ${key} element for ${id}`);
 
-                })
-                .catch(error => console.error('Error fetching data:', error));
-        });
+            return;
+        }
+    }
 
-        function updateScore(id, data) {
-
-            const scoreElement = document.getElementById(`${id}Score`);
-            const progressCircle = document.getElementById(`${id}ProgressCircle`);
-            const descriptionElement = document.getElementById(`${id}Description`);
-            const reasonElement = document.getElementById(`${id}Reason`);
-            const improvementTipElement = document.getElementById(`${id}ImprovementTip`);
-
-            if (!scoreElement || !progressCircle || !descriptionElement || !reasonElement || !improvementTipElement) {
-                console.error(`Missing elements for ${id}`);
-                return;
-            }
-
-            const targetScore = data.score;
+            const targetScore = scoreData.score;
             const circumference = 2 * Math.PI * 54;
+
 
             progressCircle.style.strokeDasharray = circumference;
             progressCircle.style.strokeDashoffset = circumference;
@@ -1315,11 +1369,12 @@
             improvementTipElement.textContent = data.improvementTip;
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            Object.keys(data).forEach(key => {
-                updateScore(key, data[key]);
-            });
-        });
+       document.addEventListener('DOMContentLoaded', () => {
+    const scoreCard = data.score_card;
+    Object.entries(scoreCard).forEach(([key, value]) => {
+        updateScore(key, value);
+    });
+});
     </script>
 
 
@@ -1350,10 +1405,15 @@
             const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
             const data = JSON.parse(apiResponseStr);
 
-            // Initialize dashboard components with the new data
-            initDashboard(data);
+            console.log("API Response:", data);
 
-            retryLink.style.display = 'none';
+            initDashboard(data);
+            
+                    const scoreCard = data.score_card;
+            Object.keys(scoreCard).forEach(key => {
+                updateScore(key, scoreCard[key]);
+                console.log("update",key,scoreCard[key])
+            });
         } catch (error) {
             console.error("Error processing success response:", error);
             resultTitle.textContent = 'Processing Error';
@@ -1373,27 +1433,22 @@
     }
 });
 
+        
+
+  
 function initDashboard(data) {
-    // Initialize all dashboard components with the new data
-    initActionableRecommendations(data["Actionable Recommendations"]);
-    createExperienceRelevanceChart(data.experience_relevance);
-    initSkillsAnalysis(data.skill_Score);
-    createProjectImpactChart(data.project_impact);
-    initRecommendations(data.recommendations);
-    initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
-    createCourseImpactChart(data.course_impact);
-    updateScoreCard(data.score_card);
+    createExperienceRelevanceChart(data);
+    initRecommendations(data);
+    initSkillsAnalysis(data);
+    createProjectImpactChart(data);
+    createCourseImpactChart(data);
+    initStrengthsWeaknesses(data);
+    initCourseSuggestions(data);
     initRecommendedPeople(data.recommended_People_linkdin, 'recommendedPeopleList');
     initRecommendedPeople(data.recommendedPeople_instagram, 'recommendedPeopleInstagramList');
     initRecommendedPeople(data.recommendedPeople_twitter, 'recommendedPeopleTwitterList');
-    initCourseSuggestions(data);
-}
 
-function updateScoreCard(scoreCard) {
-    Object.keys(scoreCard).forEach(key => {
-        updateScore(key, scoreCard[key]);
-    });
-}
+    
 
         function initCourseSuggestions(data) {
             const suggestionsList = document.getElementById('courseSuggestionsList');
@@ -1649,26 +1704,23 @@ function updateScoreCard(scoreCard) {
 
         document.addEventListener('DOMContentLoaded', initDashboard);
 
-        document.addEventListener('DOMContentLoaded', function () {
-            fetch('/data')
-                .then(response => response.json())
-                .then(data => {
-                    const scoreCard = data.score_card;
-                    Object.keys(scoreCard).forEach(key => {
-                        updateScore(key, scoreCard[key]);
-                    });
 
-                    // Call other initialization functions here
-                    initSkillsAnalysis(data.skill_Score);
-                    createProjectImpactChart(data.project_impact);
-                    initRecommendations(data.recommendations);
+        const scoreCard = data.score_card;
+    Object.keys(scoreCard).forEach(key => {
+        updateScore(key, scoreCard[key]);
+        console.log("update",key,scoreCard[key])
+    });
+}
+            // Call other initialization functions here
+            initSkillsAnalysis(data.skill_Score);
+            createProjectImpactChart(data.project_impact);
+            initRecommendations(data.recommendations);
 
-                    initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
-                    createCourseImpactChart(data.course_impact);
+            initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
+            createCourseImpactChart(data.course_impact);
 
-                })
-                .catch(error => console.error('Error fetching data:', error));
-        });
+    
+        
 
         document.addEventListener('DOMContentLoaded', fetchData);
 
