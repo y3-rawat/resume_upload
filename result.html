@@ -1674,12 +1674,12 @@ function initDashboard(data) {
 }
             // Call other initialization functions here
             initSkillsAnalysis(data.skill_Score);
-            // createProjectImpactChart(data.project_impact);
+            createProjectImpactChart(data.project_impact);
             console.log("calling2,",data.skill_Score);
-            // initRecommendations(data.recommendations);
+            initRecommendations(data.recommendations);
 
-            // initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
-            // createCourseImpactChart(data.course_impact);
+            initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
+            createCourseImpactChart(data.course_impact);
 
     
         
@@ -1706,7 +1706,7 @@ function initDashboard(data) {
             html2pdf().set(opt).from(element).save();
         });
 
-        function initSkillsAnalysis() {
+          function initSkillsAnalysis() {
             const skillsContainer = document.getElementById('skillsAnalysis');
             const skills = data.skill_Score.skills_ratio;
 
