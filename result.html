@@ -1352,7 +1352,19 @@
 
             // Initialize dashboard components with the new data
             initDashboard(data);
+            console.log("data_comming",data)
+            const scoreCard = data.score_card;
+            Object.keys(scoreCard).forEach(key => {
+                updateScore(key, scoreCard[key]);
+            });
 
+            // Call other initialization functions here
+            initSkillsAnalysis(data.skill_Score);
+            createProjectImpactChart(data.project_impact);
+            initRecommendations(data.recommendations);
+
+            initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
+            createCourseImpactChart(data.course_impact);
             retryLink.style.display = 'none';
         } catch (error) {
             console.error("Error processing success response:", error);
@@ -1648,30 +1660,6 @@ function updateScoreCard(scoreCard) {
         }
 
         document.addEventListener('DOMContentLoaded', initDashboard);
-
-        document.addEventListener('DOMContentLoaded', function () {
-            fetch('/data')
-                .then(response => response.json())
-                .then(data => {
-                    const scoreCard = data.score_card;
-                    Object.keys(scoreCard).forEach(key => {
-                        updateScore(key, scoreCard[key]);
-                    });
-
-                    // Call other initialization functions here
-                    initSkillsAnalysis(data.skill_Score);
-                    createProjectImpactChart(data.project_impact);
-                    initRecommendations(data.recommendations);
-
-                    initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
-                    createCourseImpactChart(data.course_impact);
-
-                })
-                .catch(error => console.error('Error fetching data:', error));
-        });
-
-        document.addEventListener('DOMContentLoaded', fetchData);
-
 
 
 
