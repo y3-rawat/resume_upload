@@ -1134,7 +1134,7 @@
  
 
     <script>
-        console.log("update")
+    
 //       document.addEventListener('DOMContentLoaded', function() {
 //     const safeDecodeURIComponent = (str) => {
 //         if (!str) return '';
@@ -1206,7 +1206,10 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 
                 const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
+                console.log("1")
+
                 const data = JSON.parse(apiResponseStr);
+                console.log("2")
                 initDashboard(data);
 
                 console.log("talking from api responce ",apiResponse)
