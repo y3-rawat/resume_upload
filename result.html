@@ -1408,7 +1408,7 @@
             console.log("API Response:", data);
 
             initDashboard(data);
-            console.log("calling1")
+            
                     const scoreCard = data.score_card;
             Object.keys(scoreCard).forEach(key => {
                 updateScore(key, scoreCard[key]);
@@ -1505,7 +1505,46 @@ function initDashboard(data) {
                 weaknessesList.appendChild(weaknessItem);
             });
         }
-      
+        function initSkillsAnalysis() {
+            const skillsContainer = document.getElementById('skillsAnalysis');
+            const skills = data.skill_Score.skills_ratio;
+
+            function getColor(score) {
+                if (score < 40) {
+                    const factor = score / 40;
+                    return `rgb(255, ${Math.round(65 + 155 * factor)}, ${Math.round(54 + 166 * factor)})`;
+                } else if (score < 70) {
+                    const factor = (score - 40) / 30;
+                    return `rgb(${Math.round(255 - 209 * factor) + 40}, ${Math.round(220 - 16 * factor) - 26}, ${Math.round(0 + 64 * factor) - 18})`;
+                } else {
+                    const factor = (score - 70) / 30;
+                    return `rgb(${Math.round(46 - 46 * factor) + 28}, ${Math.round(204 - 51 * factor) - 26}, ${Math.round(64 + 191 * factor) - 216})`;
+                }
+            }
+
+            Object.entries(skills).forEach(([skill, score]) => {
+                const skillElement = document.createElement('div');
+                skillElement.className = 'mb-4';
+                skillElement.innerHTML = `
+        <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-medium text-gray-700">${skill}</span>
+            <span class="text-sm font-medium text-gray-700">${score}%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%; background-color: ${getColor(score)}"></div>
+        </div>
+    `;
+                skillsContainer.appendChild(skillElement);
+
+                // Animate the skill bar
+                setTimeout(() => {
+                    const progressBar = skillElement.querySelector('.rounded-full div');
+                    progressBar.style.width = `${score}%`;
+                }, 100);
+            });
+
+            document.getElementById('skillsAdvice').textContent = data.skill_Score.advice;
+        }
         function createProjectImpactChart() {
 
 
@@ -1675,7 +1714,6 @@ function initDashboard(data) {
             // Call other initialization functions here
             initSkillsAnalysis(data.skill_Score);
             createProjectImpactChart(data.project_impact);
-            console.log("calling2,",data.skill_Score);
             initRecommendations(data.recommendations);
 
             initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
@@ -1705,47 +1743,6 @@ function initDashboard(data) {
             // Generate the PDF
             html2pdf().set(opt).from(element).save();
         });
-
-          function initSkillsAnalysis() {
-            const skillsContainer = document.getElementById('skillsAnalysis');
-            const skills = data.skill_Score.skills_ratio;
-
-            function getColor(score) {
-                if (score < 40) {
-                    const factor = score / 40;
-                    return `rgb(255, ${Math.round(65 + 155 * factor)}, ${Math.round(54 + 166 * factor)})`;
-                } else if (score < 70) {
-                    const factor = (score - 40) / 30;
-                    return `rgb(${Math.round(255 - 209 * factor) + 40}, ${Math.round(220 - 16 * factor) - 26}, ${Math.round(0 + 64 * factor) - 18})`;
-                } else {
-                    const factor = (score - 70) / 30;
-                    return `rgb(${Math.round(46 - 46 * factor) + 28}, ${Math.round(204 - 51 * factor) - 26}, ${Math.round(64 + 191 * factor) - 216})`;
-                }
-            }
-
-            Object.entries(skills).forEach(([skill, score]) => {
-                const skillElement = document.createElement('div');
-                skillElement.className = 'mb-4';
-                skillElement.innerHTML = `
-        <div class="flex items-center justify-between mb-1">
-            <span class="text-sm font-medium text-gray-700">${skill}</span>
-            <span class="text-sm font-medium text-gray-700">${score}%</span>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-2.5">
-            <div class="h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%; background-color: ${getColor(score)}"></div>
-        </div>
-    `;
-                skillsContainer.appendChild(skillElement);
-
-                // Animate the skill bar
-                setTimeout(() => {
-                    const progressBar = skillElement.querySelector('.rounded-full div');
-                    progressBar.style.width = `${score}%`;
-                }, 100);
-            });
-
-            document.getElementById('skillsAdvice').textContent = data.skill_Score.advice;
-        }
     </script>
 
 
