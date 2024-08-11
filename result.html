@@ -1288,7 +1288,9 @@
 
 
         function updateScore(id, scoreData) {
+            console.log("id,data",data)
     if (!scoreData) {
+
         console.error(`No score data provided for ${id}`);
         return;
     }
@@ -1309,8 +1311,8 @@
         }
     }
 
-    const targetScore = scoreData.score;
-    const circumference = 2 * Math.PI * 54;
+            const targetScore = scoreData.score;
+            const circumference = 2 * Math.PI * 54;
 
 
             progressCircle.style.strokeDasharray = circumference;
