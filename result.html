@@ -1388,7 +1388,7 @@
             try {
                 
                 const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
-                const data = JSON.parse(apiResponseStr);
+                data = JSON.parse(apiResponseStr);
 
                 initDashboard();
                 console.log("talking from api responce ",apiResponse)
