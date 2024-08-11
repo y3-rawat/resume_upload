@@ -1408,6 +1408,11 @@
             console.log("API Response:", data);
 
             initDashboard(data);
+            const scoreCard = data.score_card;
+            Object.keys(scoreCard).forEach(key => {
+                updateScore(key, scoreCard[key]);
+                console.log("update",key,scoreCard[key])
+            });
         } catch (error) {
             console.error("Error processing success response:", error);
             resultTitle.textContent = 'Processing Error';
