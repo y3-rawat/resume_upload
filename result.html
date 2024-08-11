@@ -1131,126 +1131,228 @@
 
     </section>
 
- 
+    <script>   
+
+        function initActionableRecommendations(recommendations) {
+            const recommendationsList = document.getElementById('actionableRecommendationsList');
+            recommendationsList.innerHTML = ''; // Clear existing items
+
+            recommendations.forEach((recommendation, index) => {
+                const li = document.createElement('li');
+                li.className = 'bg-white rounded-lg shadow-md p-4 transition duration-300 ease-in-out transform hover:scale-105';
+                li.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="text-blue-500 font-bold mr-3">${index + 1}.</span>
+                        <p class="text-gray-700">${recommendation}</p>
+                    </div>
+                `;
+                recommendationsList.appendChild(li);
+            });
+
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchRecommendedPeople();
+        });
+
+
+        function createExperienceRelevanceChart(data) {
+
+            const projectContainer = document.getElementById('experienceRelevanceChart');
+            const experience_registence = data.experience_relevance.imp;
+
+            function getColor(score) {
+                if (score < 40) {
+                    const factor = score / 40;
+                    return `rgb(255, ${Math.round(65 + 155 * factor)}, ${Math.round(54 + 166 * factor)})`;
+                } else if (score < 70) {
+                    const factor = (score - 40) / 30;
+                    return `rgb(${Math.round(255 - 209 * factor) + 40}, ${Math.round(220 - 16 * factor) - 26}, ${Math.round(0 + 64 * factor) - 18})`;
+                } else {
+                    const factor = (score - 70) / 30;
+                    return `rgb(${Math.round(46 - 46 * factor) + 28}, ${Math.round(204 - 51 * factor) - 26}, ${Math.round(64 + 191 * factor) - 216})`;
+                }
+            }
+
+            Object.entries(experience_registence).forEach(([proj, score]) => {
+                const projectElement = document.createElement('div');
+                projectElement.className = 'mb-4';
+                projectElement.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-medium text-gray-700">${proj}</span>
+                <span class="text-sm font-medium text-gray-700">${score}%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div class="h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%; background-color: ${getColor(score)}"></div>
+            </div>
+        `;
+                projectContainer.appendChild(projectElement);
+
+                // Animate the proj bar
+                setTimeout(() => {
+                    const progressBar = projectElement.querySelector('.rounded-full div');
+                    progressBar.style.width = `${score}%`;
+                }, 100);
+            });
+            document.getElementById('Expre').textContent = data.experience_relevance.advice;
+
+
+
+
+
+
+        }
+
+        function initRecommendedPeople(recommendedPeople, listId) {
+            const recommendedPeopleList = document.getElementById(listId);
+
+
+            recommendedPeopleList.innerHTML = ''; // Clear the list before adding new items
+            recommendedPeople.forEach(person => {
+                const li = document.createElement('li');
+                li.className = 'recommended-person bg-white rounded-lg shadow-sm p-4 transition duration-300 ease-in-out transform hover:scale-105';
+                li.innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <div class="recommended-person-info flex-grow">
+                        <div class="flex justify-between items-center">
+                            <p class="recommended-person-name text-sm font-semibold text-gray-800">${person.name}</p>
+                            <button class="recommended-person-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-4 rounded-full text-xs transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+                                Follow
+                            </button>
+                        </div>
+                        <p class="recommended-person-title text-xs text-gray-600 mt-1">${person.title}</p>
+                    </div>
+                </div>
+            `;
+                li.querySelector('.recommended-person-button').addEventListener('click', () => {
+                    window.open(person.link, '_blank');
+                });
+                recommendedPeopleList.appendChild(li);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/data')
+                .then(response => response.json())
+                .then(data => {
+
+
+                    initActionableRecommendations(data["Actionable Recommendations"]);
+
+                    createExperienceRelevanceChart(data.experience_relevance);
+
+
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+
+        function updateScore(id, data) {
+
+            const scoreElement = document.getElementById(`${id}Score`);
+            const progressCircle = document.getElementById(`${id}ProgressCircle`);
+            const descriptionElement = document.getElementById(`${id}Description`);
+            const reasonElement = document.getElementById(`${id}Reason`);
+            const improvementTipElement = document.getElementById(`${id}ImprovementTip`);
+
+            if (!scoreElement || !progressCircle || !descriptionElement || !reasonElement || !improvementTipElement) {
+                console.error(`Missing elements for ${id}`);
+                return;
+            }
+
+            const targetScore = data.score;
+            const circumference = 2 * Math.PI * 54;
+
+            progressCircle.style.strokeDasharray = circumference;
+            progressCircle.style.strokeDashoffset = circumference;
+
+            let currentScore = 0;
+            const duration = 2000; // 2 seconds
+            const startTime = performance.now();
+
+            function getColor(score) {
+                if (score < 40) return [255, 65, 54]; // Red
+                if (score < 70) return [255, 220, 0]; // Yellow
+                return [46, 204, 64]; // Green
+            }
+
+            function interpolateColor(color1, color2, factor) {
+                return color1.map((channel, index) =>
+                    Math.round(channel + factor * (color2[index] - channel))
+                );
+            }
+
+            function easeOutQuad(t) {
+                return t * (2 - t);
+            }
+
+            function animateScore(currentTime) {
+                const elapsedTime = currentTime - startTime;
+                if (elapsedTime < duration) {
+                    const progress = easeOutQuad(elapsedTime / duration);
+                    currentScore = Math.min(Math.floor(progress * targetScore), targetScore);
+                    scoreElement.textContent = currentScore + '%';
+
+                    const fillPercentage = currentScore / 100;
+                    const dashoffset = circumference * (1 - fillPercentage);
+                    progressCircle.style.strokeDashoffset = dashoffset;
+
+                    const startColor = getColor(Math.max(0, currentScore - 1));
+                    const endColor = getColor(currentScore);
+                    const interpolatedColor = interpolateColor(startColor, endColor, (elapsedTime % (duration / targetScore)) / (duration / targetScore));
+                    progressCircle.style.stroke = `rgb(${interpolatedColor.join(',')})`;
+
+                    requestAnimationFrame(animateScore);
+                } else {
+                    scoreElement.textContent = targetScore + '%';
+                    scoreElement.textContent = targetScore + '%';
+                }
+            }
+
+            requestAnimationFrame(animateScore);
+
+            descriptionElement.textContent = data.description;
+            reasonElement.textContent = data.reason;
+            improvementTipElement.textContent = data.improvementTip;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            Object.keys(data).forEach(key => {
+                updateScore(key, data[key]);
+            });
+        });
+    </script>
+
 
     <script>
-    
-//       document.addEventListener('DOMContentLoaded', function() {
-//     const safeDecodeURIComponent = (str) => {
-//         if (!str) return '';
-//         try {
-//             return decodeURIComponent(str.replace(/\+/g, ' '));
-//         } catch (e) {
-//             console.error("Error decoding:", str, e);
-//             return str; // Return the original string if decoding fails
-//         }
-//     };
+        let data;
 
-//     const urlParams = new URLSearchParams(window.location.search);
-//     const success = urlParams.get('success') === 'true';
-
-//     const resultTitle = document.getElementById('result-title');
-//     const resultMessage = document.getElementById('result-message');
-//     const extractedTextElement = document.getElementById('extracted-text');
-//     const apiResponseElement = document.getElementById('api-response');
-//     const retryLink = document.getElementById('retry-link');
-
-//     if (success) {
-//         try {
-//             const extractedText = safeDecodeURIComponent(urlParams.get('extractedText'));
-//             const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
-//             const data = JSON.parse(apiResponseStr);
-
-//             // Initialize dashboard components with the new data
-//             initDashboard(data);
-//             console.log("data_comming",data)
-           
-//             retryLink.style.display = 'none';
-//         } catch (error) {
-//             console.error("Error processing success response:", error);
-//             resultTitle.textContent = 'Processing Error';
-//             resultMessage.classList.add('error');
-//             resultMessage.textContent = "An error occurred while processing the response.";
-//             retryLink.style.display = 'block';
-//         }
-//     } else {
-//         const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
-//         resultTitle.textContent = 'Upload Failed';
-//         resultMessage.classList.add('error');
-//         resultMessage.textContent = 'There was an error processing your file. Please try again.';
-//         if (errorMessage) {
-//             extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
-//         }
-//         retryLink.style.display = 'block';
-//     }
-// });
-
-
-document.addEventListener('DOMContentLoaded', function() {
-        const safeDecodeURIComponent = (str) => {
-            if (!str) return '';
+        async function fetchData() {
             try {
-                return decodeURIComponent(str.replace(/\+/g, ' '));
-            } catch (e) {
-                console.error("Error decoding:", str, e);
-                return str; // Return the original string if decoding fails
-            }
-        };
-    
-        const urlParams = new URLSearchParams(window.location.search);
-        const success = urlParams.get('success') === 'true';
-    
-        
-    
-        if (success) {
-            try {
-                
-                const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
-                console.log("1")
+                const response = await fetch('/data');
+                data = await response.json();
 
-                const data = JSON.parse(apiResponseStr);
-                console.log("2")
-                initDashboard(data);
-
-                console.log("talking from api responce ",apiResponse)
-    
+                initDashboard();
             } catch (error) {
-                console.error("Error processing success response:", error);
-              
+                console.error('Error fetching data:', error);
             }
-        } else {
-            const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
-           
-            if (errorMessage) {
-                extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
-            }
-            retryLink.style.display = 'block';
         }
-    });
+
+
+        function initDashboard() {
+            createExperienceRelevanceChart(data);
+            initRecommendations();
+            initSkillsAnalysis();
+            createProjectImpactChart();
+            createCourseImpactChart();
+            initStrengthsWeaknesses();
+            initCourseSuggestions(data); // Add this line
+            initRecommendedPeople(data.recommended_People_linkdin, 'recommendedPeopleList');
+            initRecommendedPeople(data.recommendedPeople_instagram, 'recommendedPeopleInstagramList');
+            initRecommendedPeople(data.recommendedPeople_twitter, 'recommendedPeopleTwitterList');
 
 
 
-function initDashboard(data) {
-    // Initialize all dashboard components with the new data
-    initActionableRecommendations(data["Actionable Recommendations"]);
-    createExperienceRelevanceChart(data.experience_relevance);
-    initSkillsAnalysis(data.skill_Score);
-    createProjectImpactChart(data.project_impact);
-    initRecommendations(data.recommendations);
-    initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
-    createCourseImpactChart(data.course_impact);
-    updateScoreCard(data.score_card);
-    initRecommendedPeople(data.recommended_People_linkdin, 'recommendedPeopleList');
-    initRecommendedPeople(data.recommendedPeople_instagram, 'recommendedPeopleInstagramList');
-    initRecommendedPeople(data.recommendedPeople_twitter, 'recommendedPeopleTwitterList');
-    initCourseSuggestions(data);
-}
-
-function updateScoreCard(scoreCard) {
-    Object.keys(scoreCard).forEach(key => {
-        updateScore(key, scoreCard[key]);
-    });
-}
+        }
 
         function initCourseSuggestions(data) {
             const suggestionsList = document.getElementById('courseSuggestionsList');
@@ -1507,6 +1609,66 @@ function updateScoreCard(scoreCard) {
         document.addEventListener('DOMContentLoaded', initDashboard);
 
 
+        document.addEventListener('DOMContentLoaded', function() {
+        const safeDecodeURIComponent = (str) => {
+            if (!str) return '';
+            try {
+                return decodeURIComponent(str.replace(/\+/g, ' '));
+            } catch (e) {
+                console.error("Error decoding:", str, e);
+                return str; // Return the original string if decoding fails
+            }
+        };
+    
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success') === 'true';
+    
+        
+    
+        if (success) {
+            try {
+                
+                const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
+                const data = JSON.parse(apiResponseStr);
+                const scoreCard = data.score_card;
+                    Object.keys(scoreCard).forEach(key => {
+                        updateScore(key, scoreCard[key]);
+                    });
+
+                    // Call other initialization functions here
+                    initSkillsAnalysis(data.skill_Score);
+                    createProjectImpactChart(data.project_impact);
+                    initRecommendations(data.recommendations);
+
+                    initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
+                    createCourseImpactChart(data.course_impact);
+                console.log("talking from api responce ",apiResponse)
+    
+            } catch (error) {
+                console.error("Error processing success response:", error);
+              
+            }
+        } else {
+            const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
+           
+            if (errorMessage) {
+                extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
+            }
+            retryLink.style.display = 'block';
+        }
+    });
+
+
+
+
+
+
+
+
+        document.addEventListener('DOMContentLoaded', fetchData);
+
+
+
 
         document.getElementById('printButton').addEventListener('click', function () {
             // Options for the PDF
@@ -1523,180 +1685,6 @@ function updateScoreCard(scoreCard) {
 
             // Generate the PDF
             html2pdf().set(opt).from(element).save();
-        });
-
-        function initActionableRecommendations(recommendations) {
-            const recommendationsList = document.getElementById('actionableRecommendationsList');
-            recommendationsList.innerHTML = ''; // Clear existing items
-
-            recommendations.forEach((recommendation, index) => {
-                const li = document.createElement('li');
-                li.className = 'bg-white rounded-lg shadow-md p-4 transition duration-300 ease-in-out transform hover:scale-105';
-                li.innerHTML = `
-                    <div class="flex items-center">
-                        <span class="text-blue-500 font-bold mr-3">${index + 1}.</span>
-                        <p class="text-gray-700">${recommendation}</p>
-                    </div>
-                `;
-                recommendationsList.appendChild(li);
-            });
-
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchRecommendedPeople();
-        });
-
-
-        function createExperienceRelevanceChart(data) {
-
-            const projectContainer = document.getElementById('experienceRelevanceChart');
-            const experience_registence = data.experience_relevance.imp;
-
-            function getColor(score) {
-                if (score < 40) {
-                    const factor = score / 40;
-                    return `rgb(255, ${Math.round(65 + 155 * factor)}, ${Math.round(54 + 166 * factor)})`;
-                } else if (score < 70) {
-                    const factor = (score - 40) / 30;
-                    return `rgb(${Math.round(255 - 209 * factor) + 40}, ${Math.round(220 - 16 * factor) - 26}, ${Math.round(0 + 64 * factor) - 18})`;
-                } else {
-                    const factor = (score - 70) / 30;
-                    return `rgb(${Math.round(46 - 46 * factor) + 28}, ${Math.round(204 - 51 * factor) - 26}, ${Math.round(64 + 191 * factor) - 216})`;
-                }
-            }
-
-            Object.entries(experience_registence).forEach(([proj, score]) => {
-                const projectElement = document.createElement('div');
-                projectElement.className = 'mb-4';
-                projectElement.innerHTML = `
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-sm font-medium text-gray-700">${proj}</span>
-                <span class="text-sm font-medium text-gray-700">${score}%</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2.5">
-                <div class="h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%; background-color: ${getColor(score)}"></div>
-            </div>
-        `;
-                projectContainer.appendChild(projectElement);
-
-                // Animate the proj bar
-                setTimeout(() => {
-                    const progressBar = projectElement.querySelector('.rounded-full div');
-                    progressBar.style.width = `${score}%`;
-                }, 100);
-            });
-            document.getElementById('Expre').textContent = data.experience_relevance.advice;
-
-
-
-
-
-
-        }
-
-        function initRecommendedPeople(recommendedPeople, listId) {
-            const recommendedPeopleList = document.getElementById(listId);
-
-
-            recommendedPeopleList.innerHTML = ''; // Clear the list before adding new items
-            recommendedPeople.forEach(person => {
-                const li = document.createElement('li');
-                li.className = 'recommended-person bg-white rounded-lg shadow-sm p-4 transition duration-300 ease-in-out transform hover:scale-105';
-                li.innerHTML = `
-                <div class="flex items-center space-x-4">
-                    <div class="recommended-person-info flex-grow">
-                        <div class="flex justify-between items-center">
-                            <p class="recommended-person-name text-sm font-semibold text-gray-800">${person.name}</p>
-                            <button class="recommended-person-button bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-4 rounded-full text-xs transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
-                                Follow
-                            </button>
-                        </div>
-                        <p class="recommended-person-title text-xs text-gray-600 mt-1">${person.title}</p>
-                    </div>
-                </div>
-            `;
-                li.querySelector('.recommended-person-button').addEventListener('click', () => {
-                    window.open(person.link, '_blank');
-                });
-                recommendedPeopleList.appendChild(li);
-            });
-        }
-
-    
-        function updateScore(id, data) {
-
-            const scoreElement = document.getElementById(`${id}Score`);
-            const progressCircle = document.getElementById(`${id}ProgressCircle`);
-            const descriptionElement = document.getElementById(`${id}Description`);
-            const reasonElement = document.getElementById(`${id}Reason`);
-            const improvementTipElement = document.getElementById(`${id}ImprovementTip`);
-
-            if (!scoreElement || !progressCircle || !descriptionElement || !reasonElement || !improvementTipElement) {
-                console.error(`Missing elements for ${id}`);
-                return;
-            }
-
-            const targetScore = data.score;
-            const circumference = 2 * Math.PI * 54;
-
-            progressCircle.style.strokeDasharray = circumference;
-            progressCircle.style.strokeDashoffset = circumference;
-
-            let currentScore = 0;
-            const duration = 2000; // 2 seconds
-            const startTime = performance.now();
-
-            function getColor(score) {
-                if (score < 40) return [255, 65, 54]; // Red
-                if (score < 70) return [255, 220, 0]; // Yellow
-                return [46, 204, 64]; // Green
-            }
-
-            function interpolateColor(color1, color2, factor) {
-                return color1.map((channel, index) =>
-                    Math.round(channel + factor * (color2[index] - channel))
-                );
-            }
-
-            function easeOutQuad(t) {
-                return t * (2 - t);
-            }
-
-            function animateScore(currentTime) {
-                const elapsedTime = currentTime - startTime;
-                if (elapsedTime < duration) {
-                    const progress = easeOutQuad(elapsedTime / duration);
-                    currentScore = Math.min(Math.floor(progress * targetScore), targetScore);
-                    scoreElement.textContent = currentScore + '%';
-
-                    const fillPercentage = currentScore / 100;
-                    const dashoffset = circumference * (1 - fillPercentage);
-                    progressCircle.style.strokeDashoffset = dashoffset;
-
-                    const startColor = getColor(Math.max(0, currentScore - 1));
-                    const endColor = getColor(currentScore);
-                    const interpolatedColor = interpolateColor(startColor, endColor, (elapsedTime % (duration / targetScore)) / (duration / targetScore));
-                    progressCircle.style.stroke = `rgb(${interpolatedColor.join(',')})`;
-
-                    requestAnimationFrame(animateScore);
-                } else {
-                    scoreElement.textContent = targetScore + '%';
-                    scoreElement.textContent = targetScore + '%';
-                }
-            }
-
-            requestAnimationFrame(animateScore);
-
-            descriptionElement.textContent = data.description;
-            reasonElement.textContent = data.reason;
-            improvementTipElement.textContent = data.improvementTip;
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            Object.keys(data).forEach(key => {
-                updateScore(key, data[key]);
-            });
         });
     </script>
 
