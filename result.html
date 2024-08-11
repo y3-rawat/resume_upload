@@ -957,17 +957,13 @@
                                 <h2 class="card-header">Recommendations</h2>
                                 <ul id="recommendationsList" class="list-disc list-inside space-y-2 mt-4"></ul>
                             </div>
-                            <div class="rr squez card skillana" id="skills-analysis">
-                                <h2 class="">Skills Analysis</h2>
+                            <div class="rr  squez card skillana" id="skills-analysis">
+                                <h2 class="card-header">Skills Analysis</h2>
                                 <div class="card-content">
                                     <div class="space-y-4" id="skillsAnalysis"></div>
-                                    <div id="showMoreContainer" class="hidden">
-                                        <p class="show-more-btn">Show More</p>
-                                    </div>
                                     <p class="text-sm mt-6 text-gray-600" id="skillsAdvice"></p>
                                 </div>
                             </div>
-                        
 
                         </div>
             </section>
@@ -1097,19 +1093,7 @@
                     justify-content: space-around;
                 }
             </style>
-   <style>
-    .hidden {
-        display: none;
-    }
-    .show-more-btn {
-        cursor: pointer;
-        color: blue;
-        text-decoration: underline;
-    }
-    .skill-bar {
-        transition: width 0.5s ease-out;
-    }
-</style>
+
             <div class="recommended-people-container grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                 <div class="recommended-people-card bg-white rounded-lg shadow-md p-4">
 
@@ -1499,18 +1483,9 @@
                 weaknessesList.appendChild(weaknessItem);
             });
         }
-      
-        
-
-
-        function initSkillsAnalysis(data) {
+        function initSkillsAnalysis() {
             const skillsContainer = document.getElementById('skillsAnalysis');
-            const showMoreContainer = document.getElementById('showMoreContainer');
-            const showMoreBtn = showMoreContainer.querySelector('.show-more-btn');
-            let isExpanded = false;
-
             const skills = data.skill_Score.skills_ratio;
-            const skillEntries = Object.entries(skills);
 
             function getColor(score) {
                 if (score < 40) {
@@ -1525,47 +1500,29 @@
                 }
             }
 
-            function renderSkills() {
-                skillsContainer.innerHTML = '';
-                const visibleSkills = isExpanded ? skillEntries : skillEntries.slice(0, 7);
+            Object.entries(skills).forEach(([skill, score]) => {
+                const skillElement = document.createElement('div');
+                skillElement.className = 'mb-4';
+                skillElement.innerHTML = `
+        <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-medium text-gray-700">${skill}</span>
+            <span class="text-sm font-medium text-gray-700">${score}%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%; background-color: ${getColor(score)}"></div>
+        </div>
+    `;
+                skillsContainer.appendChild(skillElement);
 
-                visibleSkills.forEach(([skill, score]) => {
-                    const skillElement = document.createElement('div');
-                    skillElement.className = 'mb-4';
-                    skillElement.innerHTML = `
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-sm font-medium text-gray-700">${skill}</span>
-                            <span class="text-sm font-medium text-gray-700">${score}%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="skill-bar h-2.5 rounded-full" style="width: 0%; background-color: ${getColor(score)}"></div>
-                        </div>
-                    `;
-                    skillsContainer.appendChild(skillElement);
-
-                    setTimeout(() => {
-                        const progressBar = skillElement.querySelector('.skill-bar');
-                        progressBar.style.width = `${score}%`;
-                    }, 100);
-                });
-
-                showMoreContainer.classList.toggle('hidden', skillEntries.length <= 7);
-                showMoreBtn.textContent = isExpanded ? 'Show Less' : 'Show More';
-            }
-
-            showMoreBtn.addEventListener('click', () => {
-                isExpanded = !isExpanded;
-                renderSkills();
+                // Animate the skill bar
+                setTimeout(() => {
+                    const progressBar = skillElement.querySelector('.rounded-full div');
+                    progressBar.style.width = `${score}%`;
+                }, 100);
             });
 
-            renderSkills();
             document.getElementById('skillsAdvice').textContent = data.skill_Score.advice;
         }
-
-
-
-
-        
         function createProjectImpactChart() {
 
 
