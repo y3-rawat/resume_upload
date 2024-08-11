@@ -1307,6 +1307,7 @@
     for (const [key, element] of Object.entries(elements)) {
         if (!element) {
             console.error(`Missing ${key} element for ${id}`);
+
             return;
         }
     }
@@ -1701,6 +1702,7 @@ function initDashboard(data) {
         const scoreCard = data.score_card;
     Object.keys(scoreCard).forEach(key => {
         updateScore(key, scoreCard[key]);
+        console.log("update",key,scoreCard[key])
     });
 }
             // Call other initialization functions here
