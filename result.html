@@ -1369,54 +1369,53 @@
 
 
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-    const safeDecodeURIComponent = (str) => {
-        if (!str) return '';
-        try {
-            return decodeURIComponent(str.replace(/\+/g, ' '));
-        } catch (e) {
-            console.error("Error decoding:", str, e);
-            return str; // Return the original string if decoding fails
-        }
-    };
+        document.addEventListener('DOMContentLoaded', function() {
+        const safeDecodeURIComponent = (str) => {
+            if (!str) return '';
+            try {
+                return decodeURIComponent(str.replace(/\+/g, ' '));
+            } catch (e) {
+                console.error("Error decoding:", str, e);
+                return str; // Return the original string if decoding fails
+            }
+        };
+    
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success') === 'true';
+    
+        const resultTitle = document.getElementById('result-title');
+        const resultMessage = document.getElementById('result-message');
+        const extractedTextElement = document.getElementById('extracted-text');
+        const apiResponseElement = document.getElementById('api-response');
+        const retryLink = document.getElementById('retry-link');
+        let data;
+        if (success) {
+            try {
+                const extractedText = safeDecodeURIComponent(urlParams.get('extractedText'));
+                const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
+                const data = JSON.parse(apiResponseStr);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const success = urlParams.get('success') === 'true';
-
-    const resultTitle = document.getElementById('result-title');
-    const resultMessage = document.getElementById('result-message');
-    const extractedTextElement = document.getElementById('extracted-text');
-    const apiResponseElement = document.getElementById('api-response');
-    const retryLink = document.getElementById('retry-link');
-
-    if (success) {
-        try {
-            const extractedText = safeDecodeURIComponent(urlParams.get('extractedText'));
-            const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
-            const data = JSON.parse(apiResponseStr);
-
-            console.log("API Response:", data);
-
-            initDashboard(data);
-        } catch (error) {
-            console.error("Error processing success response:", error);
-            resultTitle.textContent = 'Processing Error';
+                console.log("talking from api responce ",apiResponse)
+    
+                initDashboard();
+            } catch (error) {
+                console.error("Error processing success response:", error);
+                resultTitle.textContent = 'Processing Error';
+                resultMessage.classList.add('error');
+                resultMessage.textContent = "An error occurred while processing the response.";
+                retryLink.style.display = 'block';
+            }
+        } else {
+            const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
+            resultTitle.textContent = 'Upload Failed';
             resultMessage.classList.add('error');
-            resultMessage.textContent = "An error occurred while processing the response.";
+            resultMessage.textContent = 'There was an error processing your file. Please try again.';
+            if (errorMessage) {
+                extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
+            }
             retryLink.style.display = 'block';
         }
-    } else {
-        const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
-        resultTitle.textContent = 'Upload Failed';
-        resultMessage.classList.add('error');
-        resultMessage.textContent = 'There was an error processing your file. Please try again.';
-        if (errorMessage) {
-            extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
-        }
-        retryLink.style.display = 'block';
-    }
-});
-
+    });
         
 
   
