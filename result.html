@@ -1712,8 +1712,9 @@ function initDashboard(data) {
     });
 }
             // Call other initialization functions here
-            // initSkillsAnalysis(data.skill_Score);
-            createProjectImpactChart(data.project_impact);
+            initSkillsAnalysis(data.skill_Score);
+            // createProjectImpactChart(data.project_impact);
+            console.log("calling2,",data.skill_Score);
             initRecommendations(data.recommendations);
 
             initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
