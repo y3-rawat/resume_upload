@@ -1367,43 +1367,46 @@
 
 
         document.addEventListener('DOMContentLoaded', function() {
-        const safeDecodeURIComponent = (str) => {
-            if (!str) return '';
-            try {
-                return decodeURIComponent(str.replace(/\+/g, ' '));
-            } catch (e) {
-                console.error("Error decoding:", str, e);
-                return str; // Return the original string if decoding fails
-            }
-        };
-    
-        const urlParams = new URLSearchParams(window.location.search);
-        const success = urlParams.get('success') === 'true';
-    
-        
-    
-        if (success) {
-            try {
-                
-                const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
-                data = JSON.parse(apiResponseStr);
-
-                initDashboard();
-                console.log("talking from api responce ",apiResponse)
-    
-            } catch (error) {
-                console.error("Error processing success response:", error);
-              
-            }
-        } else {
-            const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
-           
-            if (errorMessage) {
-                extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
-            }
-            retryLink.style.display = 'block';
+    const safeDecodeURIComponent = (str) => {
+        if (!str) return '';
+        try {
+            return decodeURIComponent(str.replace(/\+/g, ' '));
+        } catch (e) {
+            console.error("Error decoding:", str, e);
+            return str;
         }
-    });
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success') === 'true';
+
+    if (success) {
+        try {
+            const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
+            data = JSON.parse(apiResponseStr);
+            initDashboard();
+            
+            // Initialize other components
+            const scoreCard = data.score_card;
+            Object.keys(scoreCard).forEach(key => {
+                updateScore(key, scoreCard[key]);
+            });
+            initSkillsAnalysis(data.skill_Score);
+            createProjectImpactChart(data.project_impact);
+            initRecommendations(data.recommendations);
+            initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
+            createCourseImpactChart(data.course_impact);
+        } catch (error) {
+            console.error("Error processing success response:", error);
+        }
+    } else {
+        const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
+        if (errorMessage) {
+            document.getElementById('extractedText').innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
+        }
+        document.getElementById('retryLink').style.display = 'block';
+    }
+});
 
 
 
