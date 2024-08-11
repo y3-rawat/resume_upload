@@ -1408,7 +1408,8 @@
             console.log("API Response:", data);
 
             initDashboard(data);
-            const scoreCard = data.score_card;
+            console.log("calling1")
+                    const scoreCard = data.score_card;
             Object.keys(scoreCard).forEach(key => {
                 updateScore(key, scoreCard[key]);
                 console.log("update",key,scoreCard[key])
