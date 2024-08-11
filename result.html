@@ -1184,14 +1184,48 @@
 //     }
 // });
 
-try {
-    const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
-    const data = JSON.parse(apiResponseStr);
-    initDashboard(data);
-} catch (error) {
-    console.error("Error processing data:", error);
-    // Display an error message to the user
-}
+
+document.addEventListener('DOMContentLoaded', function() {
+        const safeDecodeURIComponent = (str) => {
+            if (!str) return '';
+            try {
+                return decodeURIComponent(str.replace(/\+/g, ' '));
+            } catch (e) {
+                console.error("Error decoding:", str, e);
+                return str; // Return the original string if decoding fails
+            }
+        };
+    
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success') === 'true';
+    
+        
+    
+        if (success) {
+            try {
+                
+                const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
+                const data = JSON.parse(apiResponseStr);
+                initDashboard(data);
+
+                console.log("talking from api responce ",apiResponse)
+    
+            } catch (error) {
+                console.error("Error processing success response:", error);
+              
+            }
+        } else {
+            const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
+           
+            if (errorMessage) {
+                extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
+            }
+            retryLink.style.display = 'block';
+        }
+    });
+
+
+
 function initDashboard(data) {
     // Initialize all dashboard components with the new data
     initActionableRecommendations(data["Actionable Recommendations"]);

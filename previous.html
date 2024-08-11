@@ -64,38 +64,23 @@
         const urlParams = new URLSearchParams(window.location.search);
         const success = urlParams.get('success') === 'true';
     
-        const resultTitle = document.getElementById('result-title');
-        const resultMessage = document.getElementById('result-message');
-        const extractedTextElement = document.getElementById('extracted-text');
-        const apiResponseElement = document.getElementById('api-response');
-        const retryLink = document.getElementById('retry-link');
+        
     
         if (success) {
             try {
-                const extractedText = safeDecodeURIComponent(urlParams.get('extractedText'));
+                
                 const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
                 const apiResponse = JSON.parse(apiResponseStr);
 
                 console.log("talking from api responce ",apiResponse)
     
-                resultTitle.textContent = 'Upload Successful';
-                resultMessage.classList.add('success');
-                resultMessage.textContent = 'Your file has been successfully uploaded and processed.';
-                extractedTextElement.innerHTML = `<h2>Extracted Text:</h2><pre>${extractedText}</pre>`;
-                apiResponseElement.innerHTML = `<h2>API Response:</h2><pre>${JSON.stringify(apiResponse, null, 2)}</pre>`;
-                retryLink.style.display = 'none';
             } catch (error) {
                 console.error("Error processing success response:", error);
-                resultTitle.textContent = 'Processing Error';
-                resultMessage.classList.add('error');
-                resultMessage.textContent = "An error occurred while processing the response.";
-                retryLink.style.display = 'block';
+              
             }
         } else {
             const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
-            resultTitle.textContent = 'Upload Failed';
-            resultMessage.classList.add('error');
-            resultMessage.textContent = 'There was an error processing your file. Please try again.';
+           
             if (errorMessage) {
                 extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
             }
