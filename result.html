@@ -1258,7 +1258,7 @@
                 const data = JSON.parse(apiResponseStr);
                 initActionableRecommendations(data["Actionable Recommendations"]);
 
-                createExperienceRelevanceChart(data.experience_relevance);
+                // createExperienceRelevanceChart(data.experience_relevance);
                 console.log("talking from api responce ",apiResponse)
     
             } catch (error) {
@@ -1413,7 +1413,7 @@
 
 
         function initDashboard() {
-            // createExperienceRelevanceChart(data);
+            createExperienceRelevanceChart(data);
             // initRecommendations();
             // initSkillsAnalysis();
             // createProjectImpactChart();
