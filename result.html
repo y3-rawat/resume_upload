@@ -1235,20 +1235,17 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            fetch('/data')
-                .then(response => response.json())
-                .then(data => {
 
 
-                    initActionableRecommendations(data["Actionable Recommendations"]);
-
-                    createExperienceRelevanceChart(data.experience_relevance);
 
 
-                })
-                .catch(error => console.error('Error fetching data:', error));
-        });
+
+
+
+
+        
+
+   
 
         function updateScore(id, data) {
 
@@ -1671,6 +1668,9 @@
 
                     initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
                     createCourseImpactChart(data.course_impact);
+                    initActionableRecommendations(data["Actionable Recommendations"]);
+
+                    createExperienceRelevanceChart(data.experience_relevance);
     
             } catch (error) {
                 console.error("Error processing success response:", error);
