@@ -1419,6 +1419,7 @@
             // createProjectImpactChart();
             // createCourseImpactChart();
             // initStrengthsWeaknesses();
+            initSkillsAnalysis(data);
             initCourseSuggestions(data); // Add this line
             initRecommendedPeople(data.recommended_People_linkdin, 'recommendedPeopleList');
             initRecommendedPeople(data.recommendedPeople_instagram, 'recommendedPeopleInstagramList');
@@ -1483,9 +1484,16 @@
                 weaknessesList.appendChild(weaknessItem);
             });
         }
-        function initSkillsAnalysis() {
+      
+      
+        function initSkillsAnalysis(data) {
             const skillsContainer = document.getElementById('skillsAnalysis');
+            const showMoreContainer = document.getElementById('showMoreContainer');
+            const showMoreBtn = showMoreContainer.querySelector('.show-more-btn');
+            let isExpanded = false;
+
             const skills = data.skill_Score.skills_ratio;
+            const skillEntries = Object.entries(skills);
 
             function getColor(score) {
                 if (score < 40) {
@@ -1500,29 +1508,44 @@
                 }
             }
 
-            Object.entries(skills).forEach(([skill, score]) => {
-                const skillElement = document.createElement('div');
-                skillElement.className = 'mb-4';
-                skillElement.innerHTML = `
-        <div class="flex items-center justify-between mb-1">
-            <span class="text-sm font-medium text-gray-700">${skill}</span>
-            <span class="text-sm font-medium text-gray-700">${score}%</span>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-2.5">
-            <div class="h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%; background-color: ${getColor(score)}"></div>
-        </div>
-    `;
-                skillsContainer.appendChild(skillElement);
+            function renderSkills() {
+                skillsContainer.innerHTML = '';
+                const visibleSkills = isExpanded ? skillEntries : skillEntries.slice(0, 7);
 
-                // Animate the skill bar
-                setTimeout(() => {
-                    const progressBar = skillElement.querySelector('.rounded-full div');
-                    progressBar.style.width = `${score}%`;
-                }, 100);
+                visibleSkills.forEach(([skill, score]) => {
+                    const skillElement = document.createElement('div');
+                    skillElement.className = 'mb-4';
+                    skillElement.innerHTML = `
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm font-medium text-gray-700">${skill}</span>
+                            <span class="text-sm font-medium text-gray-700">${score}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="skill-bar h-2.5 rounded-full" style="width: 0%; background-color: ${getColor(score)}"></div>
+                        </div>
+                    `;
+                    skillsContainer.appendChild(skillElement);
+
+                    setTimeout(() => {
+                        const progressBar = skillElement.querySelector('.skill-bar');
+                        progressBar.style.width = `${score}%`;
+                    }, 100);
+                });
+
+                showMoreContainer.classList.toggle('hidden', skillEntries.length <= 7);
+                showMoreBtn.textContent = isExpanded ? 'Show Less' : 'Show More';
+            }
+
+            showMoreBtn.addEventListener('click', () => {
+                isExpanded = !isExpanded;
+                renderSkills();
             });
 
+            renderSkills();
             document.getElementById('skillsAdvice').textContent = data.skill_Score.advice;
         }
+
+      
         function createProjectImpactChart() {
 
 
