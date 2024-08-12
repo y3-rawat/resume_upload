@@ -1411,7 +1411,7 @@
         function initDashboard() {
             createExperienceRelevanceChart(data);
             initRecommendations(data.recommendations);
-            document.getElementById('skillsAdvice').textContent = data.skill_Score.advice;
+
 
             initSkillsAnalysis(data);
             createProjectImpactChart();
@@ -1537,7 +1537,7 @@
             });
 
             renderSkills();
-           
+            document.getElementById('skillsAdvice').textContent = data.skill_Score.advice;
         }
         function createProjectImpactChart() {
 
@@ -1695,10 +1695,6 @@
                 });
             });
         }
-
-        document.addEventListener('DOMContentLoaded', initDashboard);
-
-
 
 
 
