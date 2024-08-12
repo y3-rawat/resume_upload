@@ -962,12 +962,12 @@
                                 <div class="card-content">
                                     <div class="space-y-4" id="skillsAnalysis"></div>
                                     <div id="showMoreContainer" class="hidden">
-                                        <p class="show-more-btn">Show More</p>
+                                      
+                                <button style="color: #3a33ff; padding-top: 20px;  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;   font-weight: bold;" class=" show-more-btn">Show More</button>
                                     </div>
                                     <p class="text-sm mt-6 text-gray-600" id="skillsAdvice"></p>
                                 </div>
                             </div>
-                        
 
                         </div>
             </section>
@@ -1097,19 +1097,7 @@
                     justify-content: space-around;
                 }
             </style>
-   <style>
-    .hidden {
-        display: none;
-    }
-    .show-more-btn {
-        cursor: pointer;
-        color: blue;
-        text-decoration: underline;
-    }
-    .skill-bar {
-        transition: width 0.5s ease-out;
-    }
-</style>
+
             <div class="recommended-people-container grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                 <div class="recommended-people-card bg-white rounded-lg shadow-md p-4">
 
@@ -1210,7 +1198,7 @@
                     progressBar.style.width = `${score}%`;
                 }, 100);
             });
-            document.getElementById('Expre').textContent = " advice:"+ data.experience_relevance.advice;
+            document.getElementById('Expre').textContent = data.experience_relevance.advice;
 
 
 
@@ -1247,60 +1235,20 @@
             });
         }
 
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/data')
+                .then(response => response.json())
+                .then(data => {
 
 
+                    initActionableRecommendations(data["Actionable Recommendations"]);
+
+                    createExperienceRelevanceChart(data.experience_relevance);
 
 
-        document.addEventListener('DOMContentLoaded', function() {
-        const safeDecodeURIComponent = (str) => {
-            if (!str) return '';
-            try {
-                return decodeURIComponent(str.replace(/\+/g, ' '));
-            } catch (e) {
-                console.error("Error decoding:", str, e);
-                return str; // Return the original string if decoding fails
-            }
-        };
-    
-        const urlParams = new URLSearchParams(window.location.search);
-        const success = urlParams.get('success') === 'true';
-    
-        
-    
-        if (success) {
-            try {
-                
-                const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
-                const data = JSON.parse(apiResponseStr);
-                initActionableRecommendations(data["Actionable Recommendations"]);
-
-                createExperienceRelevanceChart(data.experience_relevance);
-                console.log("talking from api responce ",apiResponse)
-    
-            } catch (error) {
-                console.error("Error processing success response:", error);
-              
-            }
-        } else {
-            const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
-           
-            if (errorMessage) {
-                extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
-            }
-            retryLink.style.display = 'block';
-        }
-    });
-
-
-
-
-
-
-
-
-
-
-
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
 
         function updateScore(id, data) {
 
@@ -1382,59 +1330,25 @@
     <script>
         let data;
 
-
-
-        document.addEventListener('DOMContentLoaded', function() {
-        const safeDecodeURIComponent = (str) => {
-            if (!str) return '';
+        async function fetchData() {
             try {
-                return decodeURIComponent(str.replace(/\+/g, ' '));
-            } catch (e) {
-                console.error("Error decoding:", str, e);
-                return str; // Return the original string if decoding fails
-            }
-        };
-    
-        const urlParams = new URLSearchParams(window.location.search);
-        const success = urlParams.get('success') === 'true';
-    
-        
-    
-        if (success) {
-            try {
-                
-                const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
-                data = JSON.parse(apiResponseStr);
+                const response = await fetch('/data');
+                data = await response.json();
 
                 initDashboard();
-                console.log("talking from api responce ",apiResponse)
-    
             } catch (error) {
-                console.error("Error processing success response:", error);
-              
+                console.error('Error fetching data:', error);
             }
-        } else {
-            const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
-           
-            if (errorMessage) {
-                extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
-            }
-            retryLink.style.display = 'block';
         }
-    });
-
-
-
-
 
 
         function initDashboard() {
-            // createExperienceRelevanceChart(data);
-            // initRecommendations();
-            // initSkillsAnalysis();
-            // createProjectImpactChart();
-            // createCourseImpactChart();
-            // initStrengthsWeaknesses();
+            createExperienceRelevanceChart(data);
+            initRecommendations();
+            initSkillsAnalysis(data);
+            createProjectImpactChart();
+            createCourseImpactChart();
+            initStrengthsWeaknesses();
             initCourseSuggestions(data); // Add this line
             initRecommendedPeople(data.recommended_People_linkdin, 'recommendedPeopleList');
             initRecommendedPeople(data.recommendedPeople_instagram, 'recommendedPeopleInstagramList');
@@ -1717,6 +1631,11 @@
         document.addEventListener('DOMContentLoaded', initDashboard);
 
 
+
+
+
+
+
         document.addEventListener('DOMContentLoaded', function() {
         const safeDecodeURIComponent = (str) => {
             if (!str) return '';
@@ -1738,6 +1657,8 @@
                 
                 const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
                 const data = JSON.parse(apiResponseStr);
+
+                
                 const scoreCard = data.score_card;
                     Object.keys(scoreCard).forEach(key => {
                         updateScore(key, scoreCard[key]);
@@ -1747,10 +1668,9 @@
                     initSkillsAnalysis(data.skill_Score);
                     createProjectImpactChart(data.project_impact);
                     initRecommendations(data.recommendations);
-                    createExperienceRelevanceChart(data);
+
                     initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
                     createCourseImpactChart(data.course_impact);
-                console.log("talking from api responce ",apiResponse)
     
             } catch (error) {
                 console.error("Error processing success response:", error);
@@ -1766,12 +1686,7 @@
         }
     });
 
-
-
-
-
-
-
+      
 
         document.addEventListener('DOMContentLoaded', fetchData);
 
