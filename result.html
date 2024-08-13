@@ -1158,11 +1158,12 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            fetchRecommendedPeople();
+            // fetchRecommendedPeople();
         });
 
 
         function createExperienceRelevanceChart(data) {
+            console.log("data--->",data)
 
             const projectContainer = document.getElementById('experienceRelevanceChart');
             const experience_registence = data.experience_relevance.imp;
@@ -1753,7 +1754,7 @@
 
       
 
-        document.addEventListener('DOMContentLoaded', fetchData);
+        // document.addEventListener('DOMContentLoaded', fetchData);
 
 
 
