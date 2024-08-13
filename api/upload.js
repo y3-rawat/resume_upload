@@ -114,7 +114,7 @@ module.exports = async (req, res) => {
                     console.log("File successfully uploaded to MongoDB", result);
 
                     // Call the external API
-                    const externalApiUrl = `https://resume-test-api.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}&text=${encodeURIComponent(extractedText)}`;
+                    const externalApiUrl = `https://resume-test-api.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}&ext-text=${encodeURIComponent(extractedText)}`;
                     const apiResponse = await axios.post(externalApiUrl, {
                         fileName: fileName,
                         fileType: fileType,
