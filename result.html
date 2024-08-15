@@ -1241,50 +1241,55 @@
 
 
 
-
         document.addEventListener('DOMContentLoaded', function() {
-        const safeDecodeURIComponent = (str) => {
-            if (!str) return '';
-            try {
-                return decodeURIComponent(str.replace(/\+/g, ' '));
-            } catch (e) {
-                console.error("Error decoding:", str, e);
-                return str; // Return the original string if decoding fails
-            }
-        };
-    
-        const urlParams = new URLSearchParams(window.location.search);
-        const success = urlParams.get('success') === 'true';
-    
-        
-    
-        if (success) {
-            try {
-                
-                const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
-                const data = JSON.parse(apiResponseStr);
-
-                
-
-                initActionableRecommendations(data["Actionable Recommendations"]);
-
-                createExperienceRelevanceChart(data.experience_relevance);
-
-
-    
-            } catch (error) {
-                console.error("Error processing success response:", error);
-              
-            }
-        } else {
-            const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
-           
-            if (errorMessage) {
-                extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
-            }
-            retryLink.style.display = 'block';
+    const safeDecodeURIComponent = (str) => {
+        if (!str) return '';
+        try {
+            return decodeURIComponent(str.replace(/\+/g, ' '));
+        } catch (e) {
+            console.error("Error decoding:", str, e);
+            return str; // Return the original string if decoding fails
         }
-    });
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success') === 'true';
+
+    if (success) {
+        try {
+            const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
+            const data = JSON.parse(apiResponseStr);
+
+            // Initialize dashboard components with the data
+            initDashboard(data);
+        } catch (error) {
+            console.error("Error processing success response:", error);
+            displayError("An error occurred while processing the data.");
+        }
+    } else {
+        const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
+        displayError(errorMessage || "An unknown error occurred.");
+    }
+});
+
+function displayError(message) {
+    // Create an error message element if it doesn't exist
+    let errorElement = document.getElementById('errorMessage');
+    if (!errorElement) {
+        errorElement = document.createElement('div');
+        errorElement.id = 'errorMessage';
+        errorElement.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative';
+        document.body.insertBefore(errorElement, document.body.firstChild);
+    }
+
+    errorElement.textContent = message;
+
+    // Show retry link
+    const retryLink = document.getElementById('retryLink');
+    if (retryLink) {
+        retryLink.style.display = 'block';
+    }
+}
 
 
 
