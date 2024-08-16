@@ -1139,29 +1139,7 @@
 
     <script>   
 
-        function initActionableRecommendations(recommendations) {
-            const recommendationsList = document.getElementById('actionableRecommendationsList');
-            recommendationsList.innerHTML = ''; // Clear existing items
-
-            recommendations.forEach((recommendation, index) => {
-                const li = document.createElement('li');
-                li.className = 'bg-white rounded-lg shadow-md p-4 transition duration-300 ease-in-out transform hover:scale-105';
-                li.innerHTML = `
-                    <div class="flex items-center">
-                        <span class="text-blue-500 font-bold mr-3">${index + 1}.</span>
-                        <p class="text-gray-700">${recommendation}</p>
-                    </div>
-                `;
-                recommendationsList.appendChild(li);
-            });
-
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // fetchRecommendedPeople();
-        });
-
-
+      
         function createExperienceRelevanceChart(data) {
             console.log("data--->",data)
 
@@ -1419,8 +1397,29 @@ function displayError(message) {
         function initDashboard() {
             createExperienceRelevanceChart(data);
             initRecommendations(data.recommendations);
+              function initActionableRecommendations(recommendations) {
+            const recommendationsList = document.getElementById('actionableRecommendationsList');
+            recommendationsList.innerHTML = ''; // Clear existing items
 
+            recommendations.forEach((recommendation, index) => {
+                const li = document.createElement('li');
+                li.className = 'bg-white rounded-lg shadow-md p-4 transition duration-300 ease-in-out transform hover:scale-105';
+                li.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="text-blue-500 font-bold mr-3">${index + 1}.</span>
+                        <p class="text-gray-700">${recommendation}</p>
+                    </div>
+                `;
+                recommendationsList.appendChild(li);
+            });
 
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // fetchRecommendedPeople();
+        });
+
+            initActionableRecommendations(data["Actionable Recommendations"])
             initSkillsAnalysis(data);
             createProjectImpactChart();
             createCourseImpactChart();
