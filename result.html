@@ -1669,7 +1669,7 @@ function displayError(message) {
                 }, 100);
             });
 
-            document.getElementById('courseAdvice').textContent = data.project_impact.advice;
+            document.getElementById('courseAdvice').textContent = data.course_impact.course_advice;
 
         }
         function initRecommendations() {
@@ -1762,22 +1762,23 @@ function displayError(message) {
 
 
 
-
         document.getElementById('printButton').addEventListener('click', function () {
-            // Options for the PDF
-            var opt = {
-                margin: 1,
-                filename: 'resume_analysis_dashboard.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: [11.7, 16.5], orientation: 'landscape' }
-            };
+        // Options for the PDF
+        var opt = {
+            margin: 0, // Reduce margins to fit content better
+            filename: 'Full_report.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 3 }, // Increase scale for better resolution
+            jsPDF: { unit: 'px', format: [window.innerWidth, document.body.scrollHeight], orientation: 'portrait' } // Use px and set dimensions to cover entire height
+        };
 
-            // Get the entire dashboard content
-            var element = document.body;
+        // Get the entire dashboard content
+        var element = document.body;
 
-            // Generate the PDF
-            html2pdf().set(opt).from(element).save();
+        // Generate the PDF
+        html2pdf().set(opt).from(element).save();
+    });
+
         });
     </script>
 
