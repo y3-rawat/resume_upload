@@ -1076,64 +1076,100 @@
 
 
             </section>
-
             <style>
                 .company-info {
                     padding: 20px;
                     background-color: #f9f9f9;
                     border-radius: 8px;
                     margin-top: 70px;
-
                 }
-
+            
                 .company-info h2 {
                     font-size: 1.5em;
                     margin-bottom: 16px;
                     color: #333;
                     text-align: center;
                 }
-
+            
                 .recommended-people-container {
                     display: flex;
                     flex-wrap: wrap;
                     justify-content: space-around;
                 }
+            
+                .recommended-people-card {
+                    background-color: #fff;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    width: 300px;
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+            
+                .recommended-people-list {
+                    list-style-type: none;
+                    padding: 0;
+                    margin: 0;
+                }
+            
+                .recommended-people-list li {
+                    margin-bottom: 10px;
+                }
+            
+                .recommended-people-list a {
+                    text-decoration: none;
+                    color: #0073b1; /* LinkedIn blue color by default */
+                }
+            
+                .recommended-people-list a:hover {
+                    text-decoration: underline;
+                }
+            
+                .linkedin-color {
+                    color: #0073b1;
+                }
+            
+                .instagram-color {
+                    color: #E1306C;
+                }
+            
+                .twitter-color {
+                    color: #1DA1F2;
+                }
             </style>
-
-            <div class="recommended-people-container grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                <div class="recommended-people-card bg-white rounded-lg shadow-md p-4">
-
-                    <h2 class="card-header text-xl font-semibold mb-4">Meet with staff from That company.</h2>
-                    <img width="50px" src="https://img.icons8.com/?size=100&id=xuvGCOXi8Wyg&format=png&color=000000"
-                        alt="" style="margin-left: 40%;">
-                    <ul id="recommendedPeopleList" class="recommended-people-list space-y-4">
-                        <!-- LinkedIn recommendations will be dynamically added here -->
-                    </ul>
-                </div>
-
-                <div class="recommended-people-card bg-white rounded-lg shadow-md p-4">
-                    <h2 class="card-header text-xl font-semibold mb-4">Meet with staff from That company.</h2>
-                    <img width="48" height="48" style="margin-left: 43%;"
-                        src="https://img.icons8.com/fluency/48/instagram-new.png" alt="instagram-new" />
-
-                    <ul id="recommendedPeopleInstagramList" class="recommended-people-list space-y-4">
-                        <!-- Instagram recommendations will be dynamically added here -->
-                    </ul>
-
-                </div>
-
-                <div class="recommended-people-card bg-white rounded-lg shadow-md p-4">
-                    <h2 class="card-header text-xl font-semibold mb-4">Meet with staff from That company.
-                    </h2>
-                    <img width="50" height="50" style="margin-left: 43%;"
-                        src="https://img.icons8.com/ios-filled/50/twitterx--v1.png" alt="twitterx--v1" />
-                    <ul id="recommendedPeopleTwitterList" class="recommended-people-list space-y-4">
-                        <!-- Twitter recommendations will be dynamically added here -->
-                    </ul>
-
+            
+            <div class="company-info">
+                <div class="recommended-people-container">
+                    <!-- LinkedIn Card -->
+                    <div class="recommended-people-card">
+                        <h2 class="card-header">LinkedIn Recommendations</h2>
+                        <img width="50px" src="https://img.icons8.com/?size=100&id=xuvGCOXi8Wyg&format=png&color=000000" alt="LinkedIn">
+                        <ul id="recommendedPeopleLinkedInList" class="recommended-people-list linkedin-color">
+                            <!-- LinkedIn recommendations will be dynamically added here -->
+                        </ul>
+                    </div>
+            
+                    <!-- Instagram Card -->
+                    <div class="recommended-people-card">
+                        <h2 class="card-header">Instagram Recommendations</h2>
+                        <img width="50px" src="https://img.icons8.com/fluency/48/instagram-new.png" alt="Instagram">
+                        <ul id="recommendedPeopleInstagramList" class="recommended-people-list instagram-color">
+                            <!-- Instagram recommendations will be dynamically added here -->
+                        </ul>
+                    </div>
+            
+                    <!-- Twitter Card -->
+                    <div class="recommended-people-card">
+                        <h2 class="card-header">Twitter Recommendations</h2>
+                        <img width="50px" src="https://img.icons8.com/ios-filled/50/twitterx--v1.png" alt="Twitter">
+                        <ul id="recommendedPeopleTwitterList" class="recommended-people-list twitter-color">
+                            <!-- Twitter recommendations will be dynamically added here -->
+                        </ul>
+                    </div>
                 </div>
             </div>
-    </div>
+            
 
     </section>
 
