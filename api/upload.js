@@ -9,8 +9,6 @@ const safeEncodeURIComponent = (str) => {
 };
 
 module.exports = async (req, res) => {
-  console.log("Handler started, method:", req.method);
-
   // Enable CORS
   await new Promise((resolve, reject) => {
     cors()(req, res, (result) => {
@@ -23,8 +21,6 @@ module.exports = async (req, res) => {
 
   // Handle POST requests for file upload
   if (req.method === 'POST') {
-    console.log("Received POST request");
-
     return new Promise((resolve, reject) => {
       const busboy = Busboy({ headers: req.headers });
       let fileBuffer = null;
@@ -34,9 +30,9 @@ module.exports = async (req, res) => {
       let job_description = '';
       let additional_information = '';
       let experience = '';
+      let api = '';
 
       busboy.on('file', (fieldname, file, { filename, mimeType }) => {
-        console.log(`Uploading: ${filename}, MIME type: ${mimeType}`);
         fileName = filename;
         fileType = mimeType;
         const chunks = [];
@@ -45,18 +41,18 @@ module.exports = async (req, res) => {
         });
         file.on('end', () => {
           fileBuffer = Buffer.concat(chunks);
-          console.log(`File upload complete. Size: ${fileBuffer.length} bytes`);
         });
       });
 
       busboy.on('field', (fieldname, val) => {
-        console.log(`Field [${fieldname}]: value: ${val}`);
         if (fieldname === 'job_description') {
           job_description = val;
         } else if (fieldname === 'additional_information') {
           additional_information = val;
         } else if (fieldname === 'experience') {
           experience = val;
+        } else if (fieldname === 'api') {
+          api = val;
         }
         formData[fieldname] = val;
       });
@@ -78,7 +74,7 @@ module.exports = async (req, res) => {
         }
 
         try {
-          const externalApiUrl = `https://resume-test-api.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}&ext-text=${encodeURIComponent(extractedText)}`;
+          const externalApiUrl = `https://resume-test-api.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}&ext-text=${encodeURIComponent(extractedText)}&api=${encodeURIComponent(api)}`;
           const apiResponse = await axios.post(externalApiUrl, {
             fileName: fileName,
             fileType: fileType,
@@ -86,9 +82,10 @@ module.exports = async (req, res) => {
             additional_information: additional_information,
             experience: experience,
             extractedText: extractedText,
+            api: api
           });
 
-          console.log("External API response:", apiResponse.data);
+          
 
           const safeExtractedText = safeEncodeURIComponent(extractedText);
           const safeApiResponse = safeEncodeURIComponent(JSON.stringify(apiResponse.data));
