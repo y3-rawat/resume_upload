@@ -4,6 +4,9 @@ const cors = require('cors');
 const pdfParse = require('pdf-parse');
 const axios = require('axios');
 
+// Simulated queue (replace with actual queue service like AWS SQS or RabbitMQ)
+const taskQueue = [];
+
 const safeEncodeURIComponent = (str) => {
   return encodeURIComponent(str).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16));
 };
@@ -68,97 +71,134 @@ module.exports = async (req, res) => {
           return resolve();
         }
 
-        let extractedText = '';
-        try {
-          const pdfData = await pdfParse(fileBuffer);
-          extractedText = pdfData.text || '';
-        } catch (pdfError) {
-          console.error("Error parsing PDF:", pdfError.message);
-          extractedText = 'Error extracting text from PDF';
-        }
+        // Generate a unique task ID
+        const taskId = Date.now().toString();
 
-        try {
-          const externalApiUrl = `https://resume-test-api.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}&ext-text=${encodeURIComponent(extractedText)}`;
-          const apiResponse = await axios.post(externalApiUrl, {
-            fileName: fileName,
-            fileType: fileType,
-            job_description: job_description,
-            additional_information: additional_information,
-            experience: experience,
-            extractedText: extractedText,
-          });
+        // Queue the task
+        taskQueue.push({
+          id: taskId,
+          data: {
+            fileBuffer,
+            fileName,
+            fileType,
+            job_description,
+            additional_information,
+            experience,
+            formData
+          }
+        });
 
-          console.log("External API response:", apiResponse.data);
+        // Respond immediately with the task ID
+        res.status(202).json({ success: true, message: 'Task queued', taskId });
 
-          const safeExtractedText = safeEncodeURIComponent(extractedText);
-          const safeApiResponse = safeEncodeURIComponent(JSON.stringify(apiResponse.data));
-          const redirectUrl = `/result.html?success=true&extractedText=${safeExtractedText}&apiResponse=${safeApiResponse}`;
-
-          res.writeHead(302, { Location: redirectUrl });
-          res.end();
-
-          // Perform MongoDB insertion asynchronously
-          (async () => {
-            try {
-              const uri = process.env.MONGODB_URI;
-              if (!uri) {
-                throw new Error('Server configuration error');
-              }
-
-              console.log("Attempting to connect to MongoDB...");
-              const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-
-              await client.connect();
-              console.log("Connected to MongoDB");
-              const database = client.db('db');
-              const collection = database.collection('items');
-
-              console.log("Inserting document into MongoDB...");
-              await collection.insertOne({
-                filename: fileName,
-                filetype: fileType,
-                filedata: new Binary(fileBuffer),
-                extractedText: extractedText,
-                job_description: job_description,
-                additional_information: additional_information,
-                experience: experience,
-                formData: formData,
-                apiResponse: apiResponse.data
-              });
-
-              console.log("File and API response successfully uploaded to MongoDB");
-
-              await client.close();
-              console.log("MongoDB connection closed");
-            } catch (error) {
-              console.error("Error inserting data into MongoDB:", error);
-            }
-          })();
-
-        } catch (error) {
-          console.error("Error processing request:", error);
-          const safeErrorMessage = safeEncodeURIComponent(error.message);
-          const redirectUrl = `/result.html?success=false&errorMessage=${safeErrorMessage}`;
-          res.writeHead(302, { Location: redirectUrl });
-          res.end();
-        }
+        // Process the task asynchronously
+        processTask(taskId);
 
         resolve();
       });
 
       busboy.on('error', (error) => {
         console.error("Busboy error:", error.message);
-        const redirectUrl = `/result.html?success=false&errorMessage=${encodeURIComponent(error.message)}`;
-        res.writeHead(302, { Location: redirectUrl });
-        res.end();
+        res.status(500).json({ success: false, message: 'File upload error' });
         resolve();
       });
 
       req.pipe(busboy);
     });
+  } else if (req.method === 'GET' && req.query.taskId) {
+    // Handle GET requests to check task status
+    const taskId = req.query.taskId;
+    const taskStatus = await getTaskStatus(taskId);
+    res.status(200).json(taskStatus);
   } else {
     // Method not allowed for other HTTP methods
     console.log("Method not allowed:", req.method);
     res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 };
+
+async function processTask(taskId) {
+  const task = taskQueue.find(t => t.id === taskId);
+  if (!task) {
+    console.error(`Task ${taskId} not found`);
+    return;
+  }
+
+  const { fileBuffer, fileName, fileType, job_description, additional_information, experience, formData } = task.data;
+
+  try {
+    let extractedText = '';
+    try {
+      const pdfData = await pdfParse(fileBuffer);
+      extractedText = pdfData.text || '';
+    } catch (pdfError) {
+      console.error("Error parsing PDF:", pdfError.message);
+      extractedText = 'Error extracting text from PDF';
+    }
+
+    const externalApiUrl = `https://resume-test-api.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}&ext-text=${encodeURIComponent(extractedText)}`;
+    const apiResponse = await axios.post(externalApiUrl, {
+      fileName: fileName,
+      fileType: fileType,
+      job_description: job_description,
+      additional_information: additional_information,
+      experience: experience,
+      extractedText: extractedText,
+    });
+
+    console.log("External API response:", apiResponse.data);
+
+    // Store the result in MongoDB
+    await storeInMongoDB(task.data, extractedText, apiResponse.data);
+
+    // Update task status (implement this function based on your storage method)
+    await updateTaskStatus(taskId, 'completed', apiResponse.data);
+  } catch (error) {
+    console.error("Error processing task:", error);
+    await updateTaskStatus(taskId, 'failed', { error: error.message });
+  }
+}
+
+async function storeInMongoDB(taskData, extractedText, apiResponse) {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error('Server configuration error');
+  }
+
+  const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+  try {
+    await client.connect();
+    console.log("Connected to MongoDB");
+    const database = client.db('db');
+    const collection = database.collection('items');
+
+    await collection.insertOne({
+      filename: taskData.fileName,
+      filetype: taskData.fileType,
+      filedata: new Binary(taskData.fileBuffer),
+      extractedText: extractedText,
+      job_description: taskData.job_description,
+      additional_information: taskData.additional_information,
+      experience: taskData.experience,
+      formData: taskData.formData,
+      apiResponse: apiResponse
+    });
+
+    console.log("File and API response successfully uploaded to MongoDB");
+  } finally {
+    await client.close();
+    console.log("MongoDB connection closed");
+  }
+}
+
+async function getTaskStatus(taskId) {
+  // Implement this function to retrieve task status from your storage
+  // For now, we'll return a mock status
+  return { status: 'processing' };
+}
+
+async function updateTaskStatus(taskId, status, result) {
+  // Implement this function to update task status in your storage
+  console.log(`Task ${taskId} ${status}`);
+}
