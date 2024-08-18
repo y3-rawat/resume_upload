@@ -336,7 +336,51 @@ function pollTaskStatus(taskId) {
         updateStatus('Starting upload...', 'blue');
         xhr.open('POST', '/api/upload', true);
         xhr.send(formData);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 202) {
+                    try {
+                        let response = JSON.parse(xhr.responseText);
+                        let taskId = response.task_id;
+                        updateStatus('File uploaded successfully. Processing...', 'blue');
+                        pollTaskStatus(taskId);
+                    } catch (error) {
+                        updateStatus('Error parsing server response: ' + error, 'red');
+                    }
+                } else if (xhr.status === 200) {
+                    updateStatus('File processed successfully!', 'green');
+                    // Handle immediate success (if applicable)
+                } else {
+                    updateStatus('Failed to upload file. Server responded with status ' + xhr.status, 'red');
+                }
+                progressBar.style.width = '0%';
+            }
+        };
+
     });
+    function pollTaskStatus(taskId) {
+        let pollInterval = setInterval(function() {
+            fetch('/api/status/' + taskId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'completed') {
+                        clearInterval(pollInterval);
+                        updateStatus('Processing complete!', 'green');
+                        // Redirect to results page
+                        window.location.href = '/result?success=true&apiResponse=' + encodeURIComponent(JSON.stringify(data));
+                    } else if (data.status === 'failed') {
+                        clearInterval(pollInterval);
+                        updateStatus('Processing failed: ' + data.error, 'red');
+                    } else {
+                        updateStatus('Still processing...', 'blue');
+                    }
+                })
+                .catch(error => {
+                    clearInterval(pollInterval);
+                    updateStatus('Error checking status: ' + error, 'red');
+                });
+        }, 5000); // Poll every 5 seconds
+    }
 
     function updateStatus(message, color) {
         statusDiv.textContent = message;
