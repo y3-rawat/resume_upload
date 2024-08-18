@@ -287,30 +287,46 @@
         });
 
         xhr.addEventListener('load', function () {
-            if (xhr.status === 200) {
-                updateStatus('File uploaded successfully! Redirecting...', 'green');
-                // Check if the response is a redirect
-                if (xhr.responseURL !== xhr.url) {
-                    // If it's a redirect, navigate to the new URL
-                    window.location.href = xhr.responseURL;
-                } else {
-                    // If it's not a redirect, parse the response and redirect manually
-                    try {
-                        let response = JSON.parse(xhr.responseText);
-                        if (response.redirectUrl) {
-                            window.location.href = response.redirectUrl;
-                        } else {
-                            updateStatus('Upload successful, but no redirect information received.', 'blue');
-                        }
-                    } catch (error) {
-                        updateStatus('Upload successful, but failed to parse server response.', 'orange');
-                    }
-                }
+            if (xhr.status === 202) {
+                // The request was accepted, but processing is not complete
+                let response = JSON.parse(xhr.responseText);
+                let taskId = response.task_id;
+                updateStatus('File uploaded successfully. Processing...', 'blue');
+                
+                // Start polling for status
+                pollTaskStatus(taskId);
+            } else if (xhr.status === 200) {
+                updateStatus('File processed successfully! Redirecting...', 'green');
+                // Handle redirect or further processing here
             } else {
                 updateStatus('Failed to upload file. Server responded with status ' + xhr.status, 'red');
             }
             progressBar.style.width = '0%';
         });
+        function pollTaskStatus(taskId) {
+        let pollInterval = setInterval(function() {
+            fetch(`/api/status/${taskId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'completed') {
+                        clearInterval(pollInterval);
+                        updateStatus('Processing complete! Redirecting...', 'green');
+                        // Redirect to results page or handle as needed
+                        window.location.href = `/results?taskId=${taskId}`;
+                    } else if (data.status === 'failed') {
+                        clearInterval(pollInterval);
+                        updateStatus('Processing failed: ' + data.error, 'red');
+                    } else {
+                        updateStatus('Still processing...', 'blue');
+                    }
+                })
+                .catch(error => {
+                    clearInterval(pollInterval);
+                    updateStatus('Error checking status: ' + error, 'red');
+                });
+        }, 5000); // Poll every 5 seconds
+    }
+
 
         xhr.addEventListener('error', function () {
             updateStatus('An error occurred while uploading the file.', 'red');
