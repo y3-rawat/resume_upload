@@ -3,13 +3,13 @@ const Busboy = require('busboy');
 const cors = require('cors');
 const pdfParse = require('pdf-parse');
 const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
 
-// Simulated queue (replace with actual queue service like AWS SQS or RabbitMQ)
+// Use a proper queue service in production (e.g., AWS SQS, RabbitMQ)
 const taskQueue = [];
 
-const safeEncodeURIComponent = (str) => {
-  return encodeURIComponent(str).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16));
-};
+const MONGODB_URI = process.env.MONGODB_URI;
+const EXTERNAL_API_URL = 'https://resume-test-api.vercel.app/submit';
 
 module.exports = async (req, res) => {
   console.log("Handler started, method:", req.method);
@@ -17,105 +17,74 @@ module.exports = async (req, res) => {
   // Enable CORS
   await new Promise((resolve, reject) => {
     cors()(req, res, (result) => {
-      if (result instanceof Error) {
-        return reject(result);
-      }
-      return resolve(result);
+      if (result instanceof Error) return reject(result);
+      resolve(result);
     });
   });
 
-  // Handle POST requests for file upload
   if (req.method === 'POST') {
-    console.log("Received POST request");
-
-    return new Promise((resolve, reject) => {
-      const busboy = Busboy({ headers: req.headers });
-      let fileBuffer = null;
-      let fileName = '';
-      let fileType = '';
-      let formData = {};
-      let job_description = '';
-      let additional_information = '';
-      let experience = '';
-
-      busboy.on('file', (fieldname, file, { filename, mimeType }) => {
-        console.log(`Uploading: ${filename}, MIME type: ${mimeType}`);
-        fileName = filename;
-        fileType = mimeType;
-        const chunks = [];
-        file.on('data', (data) => {
-          chunks.push(data);
-        });
-        file.on('end', () => {
-          fileBuffer = Buffer.concat(chunks);
-          console.log(`File upload complete. Size: ${fileBuffer.length} bytes`);
-        });
-      });
-
-      busboy.on('field', (fieldname, val) => {
-        console.log(`Field [${fieldname}]: value: ${val}`);
-        if (fieldname === 'job_description') {
-          job_description = val;
-        } else if (fieldname === 'additional_information') {
-          additional_information = val;
-        } else if (fieldname === 'experience') {
-          experience = val;
-        }
-        formData[fieldname] = val;
-      });
-
-      busboy.on('finish', async () => {
-        if (!fileBuffer) {
-          console.error("No file received");
-          res.status(400).json({ success: false, message: 'No file uploaded' });
-          return resolve();
-        }
-
-        // Generate a unique task ID
-        const taskId = Date.now().toString();
-
-        // Queue the task
-        taskQueue.push({
-          id: taskId,
-          data: {
-            fileBuffer,
-            fileName,
-            fileType,
-            job_description,
-            additional_information,
-            experience,
-            formData
-          }
-        });
-
-        // Respond immediately with the task ID
-        res.status(202).json({ success: true, message: 'Task queued', taskId });
-
-        // Process the task asynchronously
-        processTask(taskId);
-
-        resolve();
-      });
-
-      busboy.on('error', (error) => {
-        console.error("Busboy error:", error.message);
-        res.status(500).json({ success: false, message: 'File upload error' });
-        resolve();
-      });
-
-      req.pipe(busboy);
-    });
+    return handleFileUpload(req, res);
   } else if (req.method === 'GET' && req.query.taskId) {
-    // Handle GET requests to check task status
-    const taskId = req.query.taskId;
-    const taskStatus = await getTaskStatus(taskId);
-    res.status(200).json(taskStatus);
+    return getTaskStatus(req, res);
   } else {
-    // Method not allowed for other HTTP methods
     console.log("Method not allowed:", req.method);
-    res.status(405).json({ success: false, message: 'Method not allowed' });
+    return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 };
+
+async function handleFileUpload(req, res) {
+  return new Promise((resolve) => {
+    const busboy = Busboy({ headers: req.headers });
+    const fileData = { fileBuffer: null, fileName: '', fileType: '' };
+    const formData = {};
+
+    busboy.on('file', (fieldname, file, { filename, mimeType }) => {
+      console.log(`Uploading: ${filename}, MIME type: ${mimeType}`);
+      fileData.fileName = filename;
+      fileData.fileType = mimeType;
+      const chunks = [];
+      file.on('data', (data) => chunks.push(data));
+      file.on('end', () => {
+        fileData.fileBuffer = Buffer.concat(chunks);
+        console.log(`File upload complete. Size: ${fileData.fileBuffer.length} bytes`);
+      });
+    });
+
+    busboy.on('field', (fieldname, val) => {
+      console.log(`Field [${fieldname}]: value: ${val}`);
+      formData[fieldname] = val;
+    });
+
+    busboy.on('finish', async () => {
+      if (!fileData.fileBuffer) {
+        console.error("No file received");
+        res.status(400).json({ success: false, message: 'No file uploaded' });
+        return resolve();
+      }
+
+      const taskId = uuidv4();
+      taskQueue.push({
+        id: taskId,
+        data: { ...fileData, ...formData }
+      });
+
+      res.status(202).json({ success: true, message: 'Task queued', taskId });
+
+      // Process the task asynchronously
+      processTask(taskId);
+
+      resolve();
+    });
+
+    busboy.on('error', (error) => {
+      console.error("Busboy error:", error.message);
+      res.status(500).json({ success: false, message: 'File upload error' });
+      resolve();
+    });
+
+    req.pipe(busboy);
+  });
+}
 
 async function processTask(taskId) {
   const task = taskQueue.find(t => t.id === taskId);
@@ -124,81 +93,91 @@ async function processTask(taskId) {
     return;
   }
 
-  const { fileBuffer, fileName, fileType, job_description, additional_information, experience, formData } = task.data;
+  const { fileBuffer, fileName, fileType, job_description, additional_information, experience } = task.data;
 
   try {
-    let extractedText = '';
-    try {
-      const pdfData = await pdfParse(fileBuffer);
-      extractedText = pdfData.text || '';
-    } catch (pdfError) {
-      console.error("Error parsing PDF:", pdfError.message);
-      extractedText = 'Error extracting text from PDF';
-    }
-
-    const externalApiUrl = `https://resume-test-api.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}&ext-text=${encodeURIComponent(extractedText)}`;
-    const apiResponse = await axios.post(externalApiUrl, {
-      fileName: fileName,
-      fileType: fileType,
-      job_description: job_description,
-      additional_information: additional_information,
-      experience: experience,
-      extractedText: extractedText,
-    });
-
-    console.log("External API response:", apiResponse.data);
-
-    // Store the result in MongoDB
-    await storeInMongoDB(task.data, extractedText, apiResponse.data);
-
-    // Update task status (implement this function based on your storage method)
-    await updateTaskStatus(taskId, 'completed', apiResponse.data);
+    const extractedText = await extractTextFromPDF(fileBuffer);
+    const apiResponse = await callExternalAPI(fileName, fileType, job_description, additional_information, experience, extractedText);
+    await storeInMongoDB(task.data, extractedText, apiResponse);
+    await updateTaskStatus(taskId, 'completed', apiResponse);
   } catch (error) {
     console.error("Error processing task:", error);
     await updateTaskStatus(taskId, 'failed', { error: error.message });
   }
 }
 
-async function storeInMongoDB(taskData, extractedText, apiResponse) {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    throw new Error('Server configuration error');
+async function extractTextFromPDF(fileBuffer) {
+  try {
+    const pdfData = await pdfParse(fileBuffer);
+    return pdfData.text || '';
+  } catch (pdfError) {
+    console.error("Error parsing PDF:", pdfError.message);
+    return 'Error extracting text from PDF';
   }
+}
 
-  const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+async function callExternalAPI(fileName, fileType, job_description, additional_information, experience, extractedText) {
+  const params = new URLSearchParams({
+    fileName, fileType, job_description, additional_information, experience,
+    'ext-text': extractedText
+  });
+  const url = `${EXTERNAL_API_URL}?${params.toString()}`;
+  const response = await axios.post(url, {
+    fileName, fileType, job_description, additional_information, experience, extractedText
+  });
+  console.log("External API response:", response.data);
+  return response.data;
+}
+
+async function storeInMongoDB(taskData, extractedText, apiResponse) {
+  if (!MONGODB_URI) throw new Error('MONGODB_URI not configured');
+
+  const client = new MongoClient(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
   try {
     await client.connect();
     console.log("Connected to MongoDB");
-    const database = client.db('db');
-    const collection = database.collection('items');
+    const collection = client.db('db').collection('items');
 
     await collection.insertOne({
       filename: taskData.fileName,
       filetype: taskData.fileType,
       filedata: new Binary(taskData.fileBuffer),
-      extractedText: extractedText,
+      extractedText,
       job_description: taskData.job_description,
       additional_information: taskData.additional_information,
       experience: taskData.experience,
-      formData: taskData.formData,
-      apiResponse: apiResponse
+      apiResponse
     });
 
-    console.log("File and API response successfully uploaded to MongoDB");
+    console.log("Data successfully uploaded to MongoDB");
   } finally {
     await client.close();
     console.log("MongoDB connection closed");
   }
 }
 
-async function getTaskStatus(taskId) {
-  // Implement this function to retrieve task status from your storage
-  // For now, we'll return a mock status
-  return { status: 'processing' };
+async function getTaskStatus(req, res) {
+  const taskId = req.query.taskId;
+  const task = taskQueue.find(t => t.id === taskId);
+  
+  if (!task) {
+    return res.status(404).json({ success: false, message: 'Task not found' });
+  }
+
+  return res.status(200).json({
+    success: true,
+    status: task.status || 'processing',
+    result: task.result
+  });
 }
 
 async function updateTaskStatus(taskId, status, result) {
-  // Implement this function to update task status in your storage
+  const taskIndex = taskQueue.findIndex(t => t.id === taskId);
+  if (taskIndex !== -1) {
+    taskQueue[taskIndex].status = status;
+    taskQueue[taskIndex].result = result;
+  }
   console.log(`Task ${taskId} ${status}`);
+  // In a production environment, you would update the status in a persistent store
 }
