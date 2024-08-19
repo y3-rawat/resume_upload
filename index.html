@@ -220,17 +220,18 @@
                     <button style="color: #1e78ff;" onclick="openSmallWindow()"> <strong>Click Here!</strong> </button>
                 </label>
                 <input type="text" id="groq-api" name="groq-api" class="input-field" placeholder="Enter your Groq API key" required>
-                    <script>
-                        function openSmallWindow() {
-                            window.open(
-                                'https://console.groq.com/keys', // URL of the page to open
-                                'smallWindow', 
-                                        // Name of the new window
-                                        'center',
-                                'width=200,height=400' // Window dimensions
-                            );
-                        }
-                        </script>
+                <div style="margin: 1%;"></div>
+                    
+                <script>
+                    function openSmallWindow() {
+                        window.open(
+                            'https://console.groq.com/keys',
+                            'smallWindow', 
+                            'width=400,height=200,top=100,left=100'
+                        );
+                    }
+                </script>
+                
                 <div class="card">
                     <h2 class="text-2xl font-semibold mb-4 text-primary">
                         <i class="fas fa-user-tie mr-2"></i>Experience Level
