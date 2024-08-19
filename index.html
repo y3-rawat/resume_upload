@@ -224,13 +224,19 @@
                     
                 <script>
                     function openSmallWindow() {
+                        const width = 400;
+                        const height = 200;
+                        const left = (window.screen.width - width) / 2;
+                        const top = (window.screen.height - height) / 2;
+                        
                         window.open(
                             'https://console.groq.com/keys',
-                            'smallWindow', 
-                            'width=400,height=200,top=100,left=100'
+                            'smallWindow',
+                            `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
                         );
                     }
                 </script>
+                
                 
                 <div class="card">
                     <h2 class="text-2xl font-semibold mb-4 text-primary">
