@@ -83,7 +83,7 @@ module.exports = async (req, res) => {
             experience: experience,
             extractedText: extractedText,
             api: api
-          }, { timeout: 30000 });
+          });
 
           
 
