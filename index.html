@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
+
         :root {
             --color-primary: #0066FF;
             --color-primary-light: #E6F0FF;
@@ -22,7 +23,8 @@
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
-        body, html {
+        body,
+        html {
             font-family: 'Inter', sans-serif;
             background-color: var(--color-background);
             color: var(--color-text);
@@ -104,7 +106,8 @@
             background-color: #D9E8FF;
         }
 
-        .error-message, .success-message {
+        .error-message,
+        .success-message {
             font-size: 0.875rem;
             margin-top: 0.5rem;
         }
@@ -116,12 +119,14 @@
         .success-message {
             color: #38A169;
         }
+
         .progress-bar {
-    width: 0%;
-    height: 4px; /* Adjust height as needed */
-    background-color: var(--color-primary);
-    transition: width 0.4s ease;
-}
+            width: 0%;
+            height: 4px;
+            /* Adjust height as needed */
+            background-color: var(--color-primary);
+            transition: width 0.4s ease;
+        }
 
         @media (max-width: 768px) {
             .container {
@@ -139,79 +144,85 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
         <header class="text-center mb-8">
-          
+
             <!-- <p class="text-gray-600 mt-2">Optimize your resume for Applicant Tracking Systems</p> -->
         </header>
         <style>
-            .o{
+            .o {
                 margin-top: -15px;
             }
         </style>
-          
+
         <main class="grid grid-cols-1 md:grid-cols-2 gap-8 o">
-            
+
             <section class="order-2 md:order-1 space-y-6">
                 <h1 class="text-4xl font-bold text-gray-800">
-                    <img src="https://res.cloudinary.com/dg9wkitg0/image/upload/v1724043178/r1mp5odnj5z6tnhgfj9e.svg" alt="">
+                    <img src="https://res.cloudinary.com/dg9wkitg0/image/upload/v1724043178/r1mp5odnj5z6tnhgfj9e.svg"
+                        alt="">
                 </h1>
                 <form id="resumeForm">
 
-                <div class="card">
-                    <h2 class="text-2xl font-semibold mb-4 text-primary">
-                        <i class="fas fa-briefcase mr-2"></i>Job Details
-                    </h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label for="jobDescription" class="block text-sm font-medium mb-1">Job Description</label>
-                            <textarea id="jobDescription" name="jobDescription" rows="5" class="input-field" placeholder="Paste the job description here..." required></textarea>
-                            
+                    <div class="card">
+                        <h2 class="text-2xl font-semibold mb-4 text-primary">
+                            <i class="fas fa-briefcase mr-2"></i>Job Details
+                        </h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="jobDescription" class="block text-sm font-medium mb-1">Job
+                                    Description</label>
+                                <textarea id="jobDescription" name="jobDescription" rows="5" class="input-field"
+                                    placeholder="Paste the job description here..." required></textarea>
+
+                            </div>
+                            <div>
+                                <label for="additionalInfo" class="block text-sm font-medium mb-1">Additional
+                                    Information</label>
+                                <textarea id="additionalInfo" name="additionalInfo" rows="3" class="input-field"
+                                    placeholder="Add other relevant information..."></textarea>
+                            </div>
                         </div>
-                        <div>
-                            <label for="additionalInfo" class="block text-sm font-medium mb-1">Additional Information</label>
-                            <textarea id="additionalInfo" name="additionalInfo" rows="3" class="input-field" placeholder="Add other relevant information..."></textarea>
-                        </div>
+
                     </div>
 
-                </div>
+                    <div style="padding-top: 10px;"></div>
 
-                <div style="padding-top: 10px;"></div>
-              
 
-                <div class="card">
-                    <h2 class="text-2xl font-semibold mb-4 text-primary">
-                        <i class="fas fa-user-tie mr-2"></i>Experience Level
-                    </h2>
-                    <div class="space-y-2">
-                        <div class="flex items-center space-x-4">
-                            <label class="flex items-center space-x-2">
-                                <input type="radio" name="experience" value="Experience" required class="form-radio text-primary">
-                                <span>Experienced</span>
-                            </label>
-                            <label class="flex items-center space-x-2">
-                                <input type="radio" name="experience" value="NoExperience" required class="form-radio text-primary">
-                                <span>No Experience</span>
-                            </label>
+                    <div class="card">
+                        <h2 class="text-2xl font-semibold mb-4 text-primary">
+                            <i class="fas fa-user-tie mr-2"></i>Experience Level
+                        </h2>
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center space-x-2">
+                                    <input type="radio" name="experience" value="Experience" required
+                                        class="form-radio text-primary">
+                                    <span>Experienced</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="radio" name="experience" value="NoExperience" required
+                                        class="form-radio text-primary">
+                                    <span>No Experience</span>
+                                </label>
+                            </div>
                         </div>
+
+                        <div id="status"></div>
                     </div>
-                    
-                    <div id="status"></div>
-                </div>
             </section>
             <style>
-                
-                    .h-full {
-                        height: 60%;
-                    }
-                
+                .h-full {
+                    height: 60%;
+                }
             </style>
-            
+
             <section class="order-1 md:order-2">
                 <div style="margin-top: 30px;"></div>
                 <div class="card h-full flex flex-col">
-                    
+
                     <h2 class="text-2xl font-semibold mb-4 text-primary">
                         <i class="fas fa-file-upload mr-2"></i>Upload Your Resume
                     </h2>
@@ -224,13 +235,13 @@
                             <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
 
                         </label>
-                        
+
                     </div>
-                    
+
                     <div class="progress-bar-container hidden mt-4" id="progressBarContainer">
                         <div class="progress-bar bg-primary h-2 rounded-full" id="progressBar"></div>
                     </div>
-                    
+
                     <p id="fileInfo" class="success-message hidden mt-2"></p>
                     <p id="resumeError" class="error-message hidden mt-2"></p>
                 </div>
@@ -240,35 +251,43 @@
                         padding: 0.5rem;
                         border: 1px solid #ccc;
                         border-radius: 4px;
-                        width: calc(100% - 22px); /* Adjust width based on padding and border */
+                        width: calc(100% - 22px);
+                        /* Adjust width based on padding and border */
                     }
+
                     .info-button {
                         color: #1e78ff;
                         cursor: pointer;
                         font-weight: bold;
-                        
+
                         font-size: 16px;
                         transition: color 0.3s ease;
                     }
+
                     .info-button:hover {
                         color: #0056b3;
                     }
-            
+
                     /* Modal styles */
                     .modal {
-                        display: none; /* Hidden by default */
+                        display: none;
+                        /* Hidden by default */
                         position: fixed;
-                        z-index: 1000; /* Sit on top */
+                        z-index: 1000;
+                        /* Sit on top */
                         left: 0;
                         top: 0;
                         width: 100%;
                         height: 100%;
-                        overflow: auto; /* Enable scroll if needed */
-                        background-color: rgba(0,0,0,0.5); /* Semi-transparent background */
+                        overflow: auto;
+                        /* Enable scroll if needed */
+                        background-color: rgba(0, 0, 0, 0.5);
+                        /* Semi-transparent background */
                         justify-content: center;
                         align-items: center;
                         transition: opacity 0.3s ease;
                     }
+
                     .modal-content {
                         background-color: #fff;
                         margin: auto;
@@ -278,15 +297,17 @@
                         width: 90%;
                         max-width: 600px;
                         position: relative;
-                        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
                         transition: transform 0.3s ease;
                     }
+
                     .modal-content img {
                         max-width: 100%;
                         height: auto;
                         border-radius: 4px;
                         margin-top: 10px;
                     }
+
                     .close {
                         position: absolute;
                         top: 10px;
@@ -297,214 +318,224 @@
                         cursor: pointer;
                         transition: color 0.3s ease;
                     }
+
                     .close:hover {
                         color: #333;
                     }
+
                     .modal.show {
                         display: flex;
                         opacity: 1;
                         transform: scale(1.05);
                     }
+
                     .modal.hide {
                         opacity: 0;
                         transform: scale(0.9);
                     }
                 </style>
-         <div class="card">
-            <label for="groq-api" style="font-size:14px;font-weight:500;">
-              Enter the Api of Groq (it's Free & We are not Saving it) 
-              <button  onclick="openSmallWindow()" style="color:#0066FF;text-decoration:underline;font-weight: bold;">Click Here!</button>
-            </label>
-            <div class="input-wrapper">
-              <input type="text" id="groq-api" name="groq-api" class="input-field" placeholder="Enter your Groq API key" required>
-              <img src="https://img.icons8.com/material-outlined/24/000000/info.png" class="info-button" onclick="showModal()">
-            </div>
-          </div>
-          
-          <style>
-    
-          
-          .input-wrapper {
-            position: relative;
-            margin-top: 10px;
-          }
-          
-          .input-field {
-            width: 100%;
-            padding: 10px;
-            padding-right: 40px;
-            box-sizing: border-box;
-          }
-          
-          .info-button {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-          }
-          </style>
-            <div style="margin: 1%;"></div>
-    <!-- The Modal -->
-    <div id="myModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <p>Due to high Usage We are unable to match the demand. The Account is terminiated That's why We need your Groq API key to connect and interact with the Groq service for enhanced functionalities.</p>
-            <img src="https://res.cloudinary.com/dg9wkitg0/image/upload/v1724043061/edyszju6qmd8yrfvhjqa.png" alt="Explanation Image">
-        </div>
-    </div>
+                <div class="card">
+                    <label for="groq-api" style="font-size:14px;font-weight:500;">
+                        Enter the Api of Groq (it's Free & We are not Saving it)
+                        <button onclick="openSmallWindow()"
+                            style="color:#0066FF;text-decoration:underline;font-weight: bold;">Click Here!</button>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="text" id="groq-api" name="groq-api" class="input-field"
+                            placeholder="Enter your Groq API key" required>
+                        <div class="info-button"
+                            onclick="showModal()">
+                            Why?
+                    </div>
+                </div>
 
-    <script>
-        function openSmallWindow() {
-            const width = 1000;
-            const height = 600;
-            const left = (window.screen.width - width) / 2;
-            const top = (window.screen.height - height) / 2;
-            
-            window.open(
-                'https://console.groq.com/keys',
-                'smallWindow',
-                `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
-            );
-        }
+                <style>
+                    .input-wrapper {
+                        position: relative;
+                        margin-top: 10px;
+                    }
 
-        function showModal() {
-            const modal = document.getElementById('myModal');
-            modal.classList.remove('hide');
-            modal.classList.add('show');
-            modal.style.display = 'flex';
-        }
+                    .input-field {
+                        width: 100%;
+                        padding: 10px;
+                        padding-right: 40px;
+                        box-sizing: border-box;
+                    }
 
-        function closeModal() {
-            const modal = document.getElementById('myModal');
-            modal.classList.remove('show');
-            modal.classList.add('hide');
-            setTimeout(() => {
-                modal.style.display = 'none';
-            }, 300); // Match with the CSS transition time
-        }
+                    .info-button {
+                        position: absolute;
+                        right: 10px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        cursor: pointer;
+                    }
+                </style>
+                <div style="margin: 1%;"></div>
+                <!-- The Modal -->
+                <div id="myModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close" onclick="closeModal()">&times;</span>
+                        <p>Due to high demand, we are currently unable to fulfill requests as expected, which has led to the termination of the account. <br> <br>
+                            Groq key will allow us to connect and interact with the Groq service effectively and we are not storing your api keys.
+                            <br> <br>
+                            Thank you for your understanding and cooperation..</p>
+                        <img src="https://res.cloudinary.com/dg9wkitg0/image/upload/v1724043061/edyszju6qmd8yrfvhjqa.png"
+                            alt="Explanation Image">
+                    </div>
+                </div>
 
-        // Ensure modal is hidden initially
-        document.getElementById('myModal').style.display = 'none';
-        document.getElementById('myModal').classList.add('hide');
-    </script>
-                  <div class="card">
-                  
+                <script>
+                    function openSmallWindow() {
+                        const width = 1000;
+                        const height = 600;
+                        const left = (window.screen.width - width) / 2;
+                        const top = (window.screen.height - height) / 2;
+
+                        window.open(
+                            'https://console.groq.com/keys',
+                            'smallWindow',
+                            `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
+                        );
+                    }
+
+                    function showModal() {
+                        const modal = document.getElementById('myModal');
+                        modal.classList.remove('hide');
+                        modal.classList.add('show');
+                        modal.style.display = 'flex';
+                    }
+
+                    function closeModal() {
+                        const modal = document.getElementById('myModal');
+                        modal.classList.remove('show');
+                        modal.classList.add('hide');
+                        setTimeout(() => {
+                            modal.style.display = 'none';
+                        }, 300); // Match with the CSS transition time
+                    }
+
+                    // Ensure modal is hidden initially
+                    document.getElementById('myModal').style.display = 'none';
+                    document.getElementById('myModal').classList.add('hide');
+                </script>
+                <div class="card">
+
                     <div class="space-y-2">
                         <button type="submit" class="btn-primary">
                             <i class="fas fa-search-plus"></i>
                             <span>Analyze Resume</span>
                         </button>
-                        
+
                     </div>
                 </div>
-                
-                
-            </form>
+
+
+                </form>
 
             </section>
         </main>
     </div>
     <script>
-   document.addEventListener('DOMContentLoaded', function () {
-    const dropArea = document.getElementById('dropArea');
-    const fileInput = document.getElementById('file-upload');
-    const fileNameDisplay = document.getElementById('fileName'); // Get the file name display element
-    const resumeError = document.getElementById('resumeError');
-    const fileInfo = document.getElementById('fileInfo');
-    const form = document.getElementById('resumeForm');
-    const progressBar = document.getElementById('progressBar');
-    const jobDescription = document.getElementById('jobDescription');
-    const additionalInfo = document.getElementById('additionalInfo');
-    const statusDiv = document.getElementById('status');
-    const api = document.getElementById('groq-api');
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropArea = document.getElementById('dropArea');
+            const fileInput = document.getElementById('file-upload');
+            const fileNameDisplay = document.getElementById('fileName'); // Get the file name display element
+            const resumeError = document.getElementById('resumeError');
+            const fileInfo = document.getElementById('fileInfo');
+            const form = document.getElementById('resumeForm');
+            const progressBar = document.getElementById('progressBar');
+            const jobDescription = document.getElementById('jobDescription');
+            const additionalInfo = document.getElementById('additionalInfo');
+            const statusDiv = document.getElementById('status');
+            const api = document.getElementById('groq-api');
 
-    fileInput.addEventListener('change', function () {
-        if (fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            fileNameDisplay.textContent = `Selected file: ${file.name}`;
-        } else {
-            fileNameDisplay.textContent = ''; // Clear the file name display if no file is selected
-        }
-    });
-
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        let file = fileInput.files[0];
-        if (!file) {
-            updateStatus('Please select a file to upload.', 'red');
-            return;
-        }
-
-        if (file.type !== 'application/pdf') {
-            updateStatus('Please select a PDF file.', 'red');
-            return;
-        }
-
-        let selectedExperience = document.querySelector('input[name="experience"]:checked');
-        if (!selectedExperience) {
-            updateStatus('Please select your experience level.', 'red');
-            return;
-        }
-
-        let formData = new FormData();
-        formData.append('pdf', file);
-        formData.append('job_description', jobDescription.value);
-        formData.append('additional_information', additionalInfo.value);
-        formData.append('experience', selectedExperience.value);
-        formData.append('api', api.value);
-
-        let xhr = new XMLHttpRequest();
-
-        xhr.upload.addEventListener('progress', function (e) {
-            if (e.lengthComputable) {
-                let percentComplete = (e.loaded / e.total) * 100;
-                progressBar.style.width = percentComplete + '%';
-                updateStatus(`Uploading: ${percentComplete.toFixed(2)}%`, 'blue');
-            }
-        });
-
-        xhr.addEventListener('load', function () {
-            if (xhr.status === 200) {
-                updateStatus('File uploaded successfully! Redirecting...', 'green');
-                if (xhr.responseURL !== xhr.url) {
-                    window.location.href = xhr.responseURL;
+            fileInput.addEventListener('change', function () {
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    fileNameDisplay.textContent = `Selected file: ${file.name}`;
                 } else {
-                    try {
-                        let response = JSON.parse(xhr.responseText);
-                        if (response.redirectUrl) {
-                            window.location.href = response.redirectUrl;
-                        } else {
-                            updateStatus('Upload successful, but no redirect information received.', 'blue');
-                        }
-                    } catch (error) {
-                        updateStatus('Upload successful, but failed to parse server response.', 'orange');
-                    }
+                    fileNameDisplay.textContent = ''; // Clear the file name display if no file is selected
                 }
-            } else {
-                updateStatus('Failed to upload file. Server responded with status ' + xhr.status, 'red');
+            });
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                let file = fileInput.files[0];
+                if (!file) {
+                    updateStatus('Please select a file to upload.', 'red');
+                    return;
+                }
+
+                if (file.type !== 'application/pdf') {
+                    updateStatus('Please select a PDF file.', 'red');
+                    return;
+                }
+
+                let selectedExperience = document.querySelector('input[name="experience"]:checked');
+                if (!selectedExperience) {
+                    updateStatus('Please select your experience level.', 'red');
+                    return;
+                }
+
+                let formData = new FormData();
+                formData.append('pdf', file);
+                formData.append('job_description', jobDescription.value);
+                formData.append('additional_information', additionalInfo.value);
+                formData.append('experience', selectedExperience.value);
+                formData.append('api', api.value);
+
+                let xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', function (e) {
+                    if (e.lengthComputable) {
+                        let percentComplete = (e.loaded / e.total) * 100;
+                        progressBar.style.width = percentComplete + '%';
+                        updateStatus(`Uploading: ${percentComplete.toFixed(2)}%`, 'blue');
+                    }
+                });
+
+                xhr.addEventListener('load', function () {
+                    if (xhr.status === 200) {
+                        updateStatus('File uploaded successfully! Redirecting...', 'green');
+                        if (xhr.responseURL !== xhr.url) {
+                            window.location.href = xhr.responseURL;
+                        } else {
+                            try {
+                                let response = JSON.parse(xhr.responseText);
+                                if (response.redirectUrl) {
+                                    window.location.href = response.redirectUrl;
+                                } else {
+                                    updateStatus('Upload successful, but no redirect information received.', 'blue');
+                                }
+                            } catch (error) {
+                                updateStatus('Upload successful, but failed to parse server response.', 'orange');
+                            }
+                        }
+                    } else {
+                        updateStatus('Failed to upload file. Server responded with status ' + xhr.status, 'red');
+                    }
+                    progressBar.style.width = '0%';
+                });
+
+                xhr.addEventListener('error', function () {
+                    updateStatus('An error occurred while uploading the file.', 'red');
+                    progressBar.style.width = '0%';
+                });
+
+                updateStatus('Starting upload...', 'blue');
+                xhr.open('POST', '/api/upload', true);
+                xhr.send(formData);
+            });
+
+            function updateStatus(message, color) {
+                statusDiv.textContent = message;
+                statusDiv.style.color = color;
             }
-            progressBar.style.width = '0%';
         });
 
-        xhr.addEventListener('error', function () {
-            updateStatus('An error occurred while uploading the file.', 'red');
-            progressBar.style.width = '0%';
-        });
+    </script>
 
-        updateStatus('Starting upload...', 'blue');
-        xhr.open('POST', '/api/upload', true);
-        xhr.send(formData);
-    });
-
-    function updateStatus(message, color) {
-        statusDiv.textContent = message;
-        statusDiv.style.color = color;
-    }
-});
-
-        </script>
-        
 </body>
+
 </html>
