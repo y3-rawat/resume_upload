@@ -1479,7 +1479,7 @@ function displayError(message) {
             suggestionsList.innerHTML = ''; // Clear existing items
 
             const suggestions = [
-                { title: "Course Suggestion 1", content: data.course_impact.sug.suggestion1 },
+                { title: "Course Suggestion 1", content: data.output.course_impact.sug.suggestion1 },
                 { title: "Course Suggestion 2", content: data.suggestion2 },
                 { title: "Course Suggestion 3", content: data.course_impact.suggestion3 }
             ];
@@ -1675,7 +1675,7 @@ function displayError(message) {
 
             const projectContainer = document.getElementById('courseImpact_Chart');
             console.log("course_impact",data.course_impact)
-            const course_imt = data.course_impact.impt;
+            const course_imt = data.output.course_impact.impt;
             
             function getColor(score) {
                 if (score < 40) {
