@@ -1177,7 +1177,7 @@
 
       
         function createExperienceRelevanceChart(data) {
-            console.log("data--->",data)
+            console.log("data- experience relevance-->",data)
 
             const projectContainer = document.getElementById('experienceRelevanceChart');
             const experience_registence = data.experience_relevance.imp;
@@ -1417,7 +1417,7 @@ function displayError(message) {
                 
                 const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
                 data = JSON.parse(apiResponseStr);
-                initDashboard();
+                initDashboard(data);
                 console.log("talking from api responce ",apiResponse)
     
             } catch (error) {
@@ -1435,7 +1435,7 @@ function displayError(message) {
     });
 
 
-        function initDashboard() {
+        function initDashboard(data) {
             createExperienceRelevanceChart(data);
             initRecommendations(data.recommendations);
               function initActionableRecommendations(recommendations) {
