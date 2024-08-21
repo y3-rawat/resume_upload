@@ -1674,8 +1674,9 @@ function displayError(message) {
 
 
             const projectContainer = document.getElementById('courseImpact_Chart');
-            const course_imt = data.course_impact.impt;
             console.log("course_impact",course_imt)
+            const course_imt = data.course_impact.impt;
+            
             function getColor(score) {
                 if (score < 40) {
                     const factor = score / 40;
