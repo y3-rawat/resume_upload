@@ -1670,7 +1670,7 @@ function displayError(message) {
 
 
         }
-        function createCourseImpactChart() {
+        function createCourseImpactChart(data) {
 
 
             const projectContainer = document.getElementById('courseImpact_Chart');
@@ -1781,7 +1781,7 @@ function displayError(message) {
                     
 
                     initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
-                    createCourseImpactChart(data.course_impact);
+                    createCourseImpactChart(data);
     
             } catch (error) {
                 console.error("Error processing success response:", error);
