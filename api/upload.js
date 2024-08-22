@@ -74,7 +74,7 @@ module.exports = async (req, res) => {
         }
 
         try {
-          const externalApiUrl = `https://resume-test-api.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}&ext-text=${encodeURIComponent(extractedText)}&api=${encodeURIComponent(api)}`;
+          const externalApiUrl = `https://resume-test-1jvqn1b41-yshrawat11s-projects.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}&ext-text=${encodeURIComponent(extractedText)}&api=${encodeURIComponent(api)}`;
           const apiResponse = await axios.post(externalApiUrl, {
             fileName: fileName,
             fileType: fileType,
