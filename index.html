@@ -215,8 +215,7 @@
             const additionalInfo = document.getElementById('additionalInfo');
             const statusDiv = document.getElementById('status');
             const api = document.getElementById('groq-api');
-            const loader = document.getElementById('loader');
-        
+
             fileInput.addEventListener('change', function () {
                 if (fileInput.files.length > 0) {
                     const file = fileInput.files[0];
@@ -225,95 +224,88 @@
                     fileNameDisplay.textContent = '';
                 }
             });
+
             form.addEventListener('submit', function (e) {
-    e.preventDefault();
+                e.preventDefault();
 
-    let file = fileInput.files[0];
-    if (!file) {
-        updateStatus('Please select a file to upload.', 'red');
-        return;
-    }
+                let file = fileInput.files[0];
+                if (!file) {
+                    updateStatus('Please select a file to upload.', 'red');
+                    return;
+                }
 
-    if (file.type !== 'application/pdf') {
-        updateStatus('Please select a PDF file.', 'red');
-        return;
-    }
+                if (file.type !== 'application/pdf') {
+                    updateStatus('Please select a PDF file.', 'red');
+                    return;
+                }
 
-    let selectedExperience = document.querySelector('input[name="experience"]:checked');
-    if (!selectedExperience) {
-        updateStatus('Please select your experience level.', 'red');
-        return;
-    }
+                let selectedExperience = document.querySelector('input[name="experience"]:checked');
+                if (!selectedExperience) {
+                    updateStatus('Please select your experience level.', 'red');
+                    return;
+                }
 
-    let formData = new FormData(form);
+                let formData = new FormData(form);
 
-    updateStatus('Uploading file...', 'blue');
-    showLoader();
+                updateStatus('Uploading file...', 'blue');
 
-    const eventSource = new EventSource('/api/upload');
+                const eventSource = new EventSource('/api/upload');
 
-    eventSource.onmessage = function(event) {
-        const data = JSON.parse(event.data);
-        console.log('Received event:', data);
-    };
+                eventSource.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    console.log('Received event:', data);
+                };
 
-    eventSource.addEventListener('status', function(event) {
-        const data = JSON.parse(event.data);
-        if (data.page === 'text_extracting') {
-            window.location.href = '/text_extracting.html';
-        } else if (data.page === 'data_fetching') {
-            window.location.href = '/data_fetching.html';
-        }
-    });
+                eventSource.addEventListener('status', function(event) {
+                    const data = JSON.parse(event.data);
+                    console.log('Received status event:', data);
+                    if (data.page === 'text_extracting') {
+                        console.log('Navigating to text_extracting.html');
+                        window.location.href = '/text_extracting.html';
+                    } else if (data.page === 'data_fetching') {
+                        console.log('Navigating to data_fetching.html');
+                        window.location.href = '/data_fetching.html';
+                    }
+                });
 
-    eventSource.addEventListener('result', function(event) {
-        const data = JSON.parse(event.data);
-        if (data.success) {
-            window.location.href = `/result.html?success=true&extractedText=${data.extractedText}&apiResponse=${data.apiResponse}`;
-        } else {
-            updateStatus('An error occurred while processing your request.', 'red');
-        }
-        eventSource.close();
-    });
+                eventSource.addEventListener('result', function(event) {
+                    const data = JSON.parse(event.data);
+                    if (data.success) {
+                        window.location.href = `/result.html?success=true&extractedText=${data.extractedText}&apiResponse=${data.apiResponse}`;
+                    } else {
+                        updateStatus('An error occurred while processing your request.', 'red');
+                    }
+                    eventSource.close();
+                });
 
-    eventSource.addEventListener('error', function(event) {
-        const data = JSON.parse(event.data);
-        updateStatus(data.message || 'An error occurred', 'red');
-        eventSource.close();
-        hideLoader();
-    });
+                eventSource.addEventListener('error', function(event) {
+                    const data = JSON.parse(event.data);
+                    updateStatus(data.message || 'An error occurred', 'red');
+                    eventSource.close();
+                });
 
-    eventSource.onerror = function(error) {
-        console.error('EventSource failed:', error);
-        updateStatus('Connection error. Please try again.', 'red');
-        eventSource.close();
-        hideLoader();
-    };
+                eventSource.onerror = function(error) {
+                    console.error('EventSource failed:', error);
+                    updateStatus('Connection error. Please try again.', 'red');
+                    eventSource.close();
+                };
 
-    fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-    }).catch(error => {
-        console.error('Error:', error);
-        updateStatus('An error occurred while uploading your file.', 'red');
-        eventSource.close();
-        hideLoader();
-    });
-});
+                fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                }).catch(error => {
+                    console.error('Error:', error);
+                    updateStatus('An error occurred while uploading your file.', 'red');
+                    eventSource.close();
+                });
+            });
 
-function updateStatus(message, color) {
-    statusDiv.textContent = message;
-    statusDiv.style.color = color;
-}
-
-function showLoader() {
-    loader.classList.remove('hidden');
-}
-
-function hideLoader() {
-    loader.classList.add('hidden');
-}
+            function updateStatus(message, color) {
+                statusDiv.textContent = message;
+                statusDiv.style.color = color;
+            }
         });
+
         
         function openSmallWindow() {
             const width = 1000;
