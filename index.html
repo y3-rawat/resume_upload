@@ -250,24 +250,53 @@
     updateStatus('Uploading file...', 'blue');
     showLoader();
 
+    const eventSource = new EventSource('/api/upload');
+
+    eventSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        console.log('Received event:', data);
+    };
+
+    eventSource.addEventListener('status', function(event) {
+        const data = JSON.parse(event.data);
+        if (data.page === 'text_extracting') {
+            window.location.href = '/text_extracting.html';
+        } else if (data.page === 'data_fetching') {
+            window.location.href = '/data_fetching.html';
+        }
+    });
+
+    eventSource.addEventListener('result', function(event) {
+        const data = JSON.parse(event.data);
+        if (data.success) {
+            window.location.href = `/result.html?success=true&extractedText=${data.extractedText}&apiResponse=${data.apiResponse}`;
+        } else {
+            updateStatus('An error occurred while processing your request.', 'red');
+        }
+        eventSource.close();
+    });
+
+    eventSource.addEventListener('error', function(event) {
+        const data = JSON.parse(event.data);
+        updateStatus(data.message || 'An error occurred', 'red');
+        eventSource.close();
+        hideLoader();
+    });
+
+    eventSource.onerror = function(error) {
+        console.error('EventSource failed:', error);
+        updateStatus('Connection error. Please try again.', 'red');
+        eventSource.close();
+        hideLoader();
+    };
+
     fetch('/api/upload', {
         method: 'POST',
         body: formData
-    }).then(response => {
-        if (response.redirected) {
-            updateStatus('Processing your resume...', 'blue');
-            window.location.href = response.url;
-        } else {
-            return response.json();
-        }
-    }).then(data => {
-        if (data && !data.success) {
-            updateStatus(data.message || 'An error occurred', 'red');
-        }
     }).catch(error => {
         console.error('Error:', error);
-        updateStatus('An error occurred while processing your request.', 'red');
-    }).finally(() => {
+        updateStatus('An error occurred while uploading your file.', 'red');
+        eventSource.close();
         hideLoader();
     });
 });
@@ -284,7 +313,6 @@ function showLoader() {
 function hideLoader() {
     loader.classList.add('hidden');
 }
-
         });
         
         function openSmallWindow() {

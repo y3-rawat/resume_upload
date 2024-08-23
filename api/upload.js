@@ -21,6 +21,17 @@ module.exports = async (req, res) => {
 
   // Handle POST requests for file upload
   if (req.method === 'POST') {
+    // Set up SSE
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive'
+    });
+
+    const sendEvent = (event, data) => {
+      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    };
+
     return new Promise((resolve, reject) => {
       const busboy = Busboy({ headers: req.headers });
       let fileBuffer = null;
@@ -59,15 +70,20 @@ module.exports = async (req, res) => {
 
       busboy.on('finish', async () => {
         if (!fileBuffer) {
-          console.error("No file received");
-          res.status(400).json({ success: false, message: 'No file uploaded' });
+          sendEvent('error', { message: 'No file uploaded' });
           return resolve();
         }
 
         try {
+          // Notify client to show text_extracting.html
+          sendEvent('status', { page: 'text_extracting' });
+
           // Extract text from PDF
           const pdfData = await pdfParse(fileBuffer);
           const extractedText = pdfData.text || '';
+
+          // Notify client to show data_fetching.html
+          sendEvent('status', { page: 'data_fetching' });
 
           // Call external API
           const externalApiUrl = `https://resume-test-api.vercel.app/submit`;
@@ -94,28 +110,27 @@ module.exports = async (req, res) => {
             apiResponse: apiResponse.data
           });
 
-          // Redirect to result page
+          // Send final result
           const safeExtractedText = safeEncodeURIComponent(extractedText);
           const safeApiResponse = safeEncodeURIComponent(JSON.stringify(apiResponse.data));
-          const redirectUrl = `/result.html?success=true&extractedText=${safeExtractedText}&apiResponse=${safeApiResponse}`;
-          res.writeHead(302, { Location: redirectUrl });
-          res.end();
+          sendEvent('result', { 
+            success: true, 
+            extractedText: safeExtractedText, 
+            apiResponse: safeApiResponse 
+          });
 
         } catch (error) {
           console.error("Error processing request:", error);
-          const safeErrorMessage = safeEncodeURIComponent(error.message);
-          const redirectUrl = `/result.html?success=false&errorMessage=${safeErrorMessage}`;
-          res.writeHead(302, { Location: redirectUrl });
-          res.end();
+          sendEvent('error', { message: error.message });
         }
 
+        res.end();
         resolve();
       });
 
       busboy.on('error', (error) => {
         console.error("Busboy error:", error.message);
-        const redirectUrl = `/result.html?success=false&errorMessage=${encodeURIComponent(error.message)}`;
-        res.writeHead(302, { Location: redirectUrl });
+        sendEvent('error', { message: error.message });
         res.end();
         resolve();
       });
