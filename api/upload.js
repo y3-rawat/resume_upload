@@ -64,25 +64,13 @@ module.exports = async (req, res) => {
           return resolve();
         }
 
-        // Redirect to text_extracting.html
-        res.writeHead(302, { Location: '/text_extracting.html' });
-        res.end();
-
-        let extractedText = '';
         try {
+          // Extract text from PDF
           const pdfData = await pdfParse(fileBuffer);
-          extractedText = pdfData.text || '';
-        } catch (pdfError) {
-          console.error("Error parsing PDF:", pdfError.message);
-          extractedText = 'Error extracting text from PDF';
-        }
+          const extractedText = pdfData.text || '';
 
-        try {
-          // Redirect to data_fetching.html
-          res.writeHead(302, { Location: '/data_fetching.html' });
-          res.end();
-
-          const externalApiUrl = `https://resume-test-api.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}&ext-text=${encodeURIComponent(extractedText)}&api=${encodeURIComponent(api)}`;
+          // Call external API
+          const externalApiUrl = `https://resume-test-api.vercel.app/submit`;
           const apiResponse = await axios.post(externalApiUrl, {
             fileName: fileName,
             fileType: fileType,
@@ -93,50 +81,25 @@ module.exports = async (req, res) => {
             api: api
           });
 
+          // Insert data into MongoDB
+          await insertIntoMongoDB({
+            fileName,
+            fileType,
+            fileBuffer,
+            extractedText,
+            job_description,
+            additional_information,
+            experience,
+            formData,
+            apiResponse: apiResponse.data
+          });
+
+          // Redirect to result page
           const safeExtractedText = safeEncodeURIComponent(extractedText);
           const safeApiResponse = safeEncodeURIComponent(JSON.stringify(apiResponse.data));
           const redirectUrl = `/result.html?success=true&extractedText=${safeExtractedText}&apiResponse=${safeApiResponse}`;
-
           res.writeHead(302, { Location: redirectUrl });
           res.end();
-
-          // Perform MongoDB insertion asynchronously
-          (async () => {
-            try {
-              const uri = process.env.MONGODB_URI;
-              if (!uri) {
-                throw new Error('Server configuration error');
-              }
-
-              console.log("Attempting to connect to MongoDB...");
-              const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-
-              await client.connect();
-              console.log("Connected to MongoDB");
-              const database = client.db('db');
-              const collection = database.collection('items');
-
-              console.log("Inserting document into MongoDB...");
-              await collection.insertOne({
-                filename: fileName,
-                filetype: fileType,
-                filedata: new Binary(fileBuffer),
-                extractedText: extractedText,
-                job_description: job_description,
-                additional_information: additional_information,
-                experience: experience,
-                formData: formData,
-                apiResponse: apiResponse.data
-              });
-
-              console.log("File and API response successfully uploaded to MongoDB");
-
-              await client.close();
-              console.log("MongoDB connection closed");
-            } catch (error) {
-              console.error("Error inserting data into MongoDB:", error);
-            }
-          })();
 
         } catch (error) {
           console.error("Error processing request:", error);
@@ -165,3 +128,36 @@ module.exports = async (req, res) => {
     res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 };
+
+async function insertIntoMongoDB(data) {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error('Server configuration error');
+  }
+
+  const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+  try {
+    await client.connect();
+    const database = client.db('db');
+    const collection = database.collection('items');
+
+    await collection.insertOne({
+      filename: data.fileName,
+      filetype: data.fileType,
+      filedata: new Binary(data.fileBuffer),
+      extractedText: data.extractedText,
+      job_description: data.job_description,
+      additional_information: data.additional_information,
+      experience: data.experience,
+      formData: data.formData,
+      apiResponse: data.apiResponse
+    });
+
+    console.log("File and API response successfully uploaded to MongoDB");
+  } catch (error) {
+    console.error("Error inserting data into MongoDB:", error);
+  } finally {
+    await client.close();
+  }
+}

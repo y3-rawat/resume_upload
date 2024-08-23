@@ -225,66 +225,66 @@
                     fileNameDisplay.textContent = '';
                 }
             });
-        
             form.addEventListener('submit', function (e) {
-                e.preventDefault();
-        
-                let file = fileInput.files[0];
-                if (!file) {
-                    updateStatus('Please select a file to upload.', 'red');
-                    return;
-                }
-        
-                if (file.type !== 'application/pdf') {
-                    updateStatus('Please select a PDF file.', 'red');
-                    return;
-                }
-        
-                let selectedExperience = document.querySelector('input[name="experience"]:checked');
-                if (!selectedExperience) {
-                    updateStatus('Please select your experience level.', 'red');
-                    return;
-                }
-        
-                let formData = new FormData(form);
-        
-                updateStatus('Starting upload...', 'blue');
-                showLoader();
-        
-                fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                }).then(response => {
-                    if (response.redirected) {
-                        window.location.href = response.url;
-                    } else {
-                        return response.json();
-                    }
-                }).then(data => {
-                    if (data && !data.success) {
-                        updateStatus(data.message || 'An error occurred', 'red');
-                    }
-                }).catch(error => {
-                    console.error('Error:', error);
-                    updateStatus('An error occurred while uploading the file.', 'red');
-                }).finally(() => {
-                    hideLoader();
-                    progressBar.style.width = '0%';
-                });
-            });
-        
-            function updateStatus(message, color) {
-                statusDiv.textContent = message;
-                statusDiv.style.color = color;
-            }
-        
-            function showLoader() {
-                loader.classList.remove('hidden');
-            }
-        
-            function hideLoader() {
-                loader.classList.add('hidden');
-            }
+    e.preventDefault();
+
+    let file = fileInput.files[0];
+    if (!file) {
+        updateStatus('Please select a file to upload.', 'red');
+        return;
+    }
+
+    if (file.type !== 'application/pdf') {
+        updateStatus('Please select a PDF file.', 'red');
+        return;
+    }
+
+    let selectedExperience = document.querySelector('input[name="experience"]:checked');
+    if (!selectedExperience) {
+        updateStatus('Please select your experience level.', 'red');
+        return;
+    }
+
+    let formData = new FormData(form);
+
+    updateStatus('Uploading file...', 'blue');
+    showLoader();
+
+    fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+    }).then(response => {
+        if (response.redirected) {
+            updateStatus('Processing your resume...', 'blue');
+            window.location.href = response.url;
+        } else {
+            return response.json();
+        }
+    }).then(data => {
+        if (data && !data.success) {
+            updateStatus(data.message || 'An error occurred', 'red');
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+        updateStatus('An error occurred while processing your request.', 'red');
+    }).finally(() => {
+        hideLoader();
+    });
+});
+
+function updateStatus(message, color) {
+    statusDiv.textContent = message;
+    statusDiv.style.color = color;
+}
+
+function showLoader() {
+    loader.classList.remove('hidden');
+}
+
+function hideLoader() {
+    loader.classList.add('hidden');
+}
+
         });
         
         function openSmallWindow() {
