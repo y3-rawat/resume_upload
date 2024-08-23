@@ -64,6 +64,10 @@ module.exports = async (req, res) => {
           return resolve();
         }
 
+        // Redirect to text_extracting.html
+        res.writeHead(302, { Location: '/text_extracting.html' });
+        res.end();
+
         let extractedText = '';
         try {
           const pdfData = await pdfParse(fileBuffer);
@@ -74,6 +78,10 @@ module.exports = async (req, res) => {
         }
 
         try {
+          // Redirect to data_fetching.html
+          res.writeHead(302, { Location: '/data_fetching.html' });
+          res.end();
+
           const externalApiUrl = `https://resume-test-api.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}&ext-text=${encodeURIComponent(extractedText)}&api=${encodeURIComponent(api)}`;
           const apiResponse = await axios.post(externalApiUrl, {
             fileName: fileName,
@@ -84,8 +92,6 @@ module.exports = async (req, res) => {
             extractedText: extractedText,
             api: api
           });
-
-          
 
           const safeExtractedText = safeEncodeURIComponent(extractedText);
           const safeApiResponse = safeEncodeURIComponent(JSON.stringify(apiResponse.data));
