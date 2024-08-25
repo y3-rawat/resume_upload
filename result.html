@@ -1226,40 +1226,48 @@
 
 
         }
+        function openInPopup(url) {
+            const width = 600;
+            const height = 400;
+            const left = (window.screen.width - width) / 2;
+            const top = (window.screen.height - height) / 2;
+            
+            window.open(url, 'popupWindow', `width=${width},height=${height},left=${left},top=${top}`);
+        }
+
         function initRecommendedPeople(recommendedPeople, listId) {
-    const recommendedPeopleList = document.getElementById(listId);
-    
-    if (!recommendedPeopleList) {
-        console.error(`Element with id ${listId} not found`);
-        return;
-    }
+            const recommendedPeopleList = document.getElementById(listId);
+            
+            if (!recommendedPeopleList) {
+                console.error(`Element with id ${listId} not found`);
+                return;
+            }
 
-    recommendedPeopleList.innerHTML = ''; // Clear the list before adding new items
-    
-    if (!Array.isArray(recommendedPeople)) {
-        console.error(`recommendedPeople is not an array for ${listId}`);
-        return;
-    }
+            recommendedPeopleList.innerHTML = ''; // Clear the list before adding new items
+            
+            if (!Array.isArray(recommendedPeople)) {
+                console.error(`recommendedPeople is not an array for ${listId}`);
+                return;
+            }
 
-   recommendedPeople.forEach(person => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-            <button onclick="openInPopup(${person.link})">
-                Get People for ${person.title}
-            </button>
-        `;
-        recommendedPeopleList.appendChild(li);
-    });
+            recommendedPeople.forEach(person => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <button data-url="${person.link}">
+                        Get People for ${person.title}
+                    </button>
+                `;
+                recommendedPeopleList.appendChild(li);
+            });
 
-    function openInPopup(url) {
-        const width = 600;
-        const height = 400;
-        const left = (window.screen.width - width) / 2;
-        const top = (window.screen.height - height) / 2;
-        
-        window.open(url, `width=${width},height=${height},left=${left},top=${top}`);
-    }
-}
+            // Attach event listeners to buttons
+            recommendedPeopleList.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const url = this.getAttribute('data-url');
+                    openInPopup(url);
+                });
+            });
+        }
 
 
 
