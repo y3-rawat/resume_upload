@@ -1384,7 +1384,373 @@ function displayError(message) {
 
 
     <script>
-     
+         function createListItem(person) {
+        return `
+            <li>
+                <a href="${person.link}" target="_blank">
+                    ${person.name} - ${person.title}
+                </a>
+            </li>
+        `;
+    }
+        let data;
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+        const safeDecodeURIComponent = (str) => {
+            if (!str) return '';
+            try {
+                return decodeURIComponent(str.replace(/\+/g, ' '));
+            } catch (e) {
+                console.error("Error decoding:", str, e);
+                return str; // Return the original string if decoding fails
+            }
+        };
+    
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success') === 'true';
+    
+        
+    
+        if (success) {
+            try {
+                
+                const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
+                data = JSON.parse(apiResponseStr);
+                initDashboard(data);
+                console.log("talking from api responce ",apiResponse)
+    
+            } catch (error) {
+                console.error("Error processing success response:", error);
+              
+            }
+        } else {
+            const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
+           
+            if (errorMessage) {
+                extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
+            }
+            retryLink.style.display = 'block';
+        }
+    });
+
+
+        function initDashboard(data) {
+            createExperienceRelevanceChart(data);
+            initRecommendations(data.recommendations);
+              function initActionableRecommendations(recommendations) {
+            const recommendationsList = document.getElementById('actionableRecommendationsList');
+            recommendationsList.innerHTML = ''; // Clear existing items
+
+            recommendations.forEach((recommendation, index) => {
+                const li = document.createElement('li');
+                li.className = 'bg-white rounded-lg shadow-md p-4 transition duration-300 ease-in-out transform hover:scale-105';
+                li.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="text-blue-500 font-bold mr-3">${index + 1}.</span>
+                        <p class="text-gray-700">${recommendation}</p>
+                    </div>
+                `;
+                recommendationsList.appendChild(li);
+            });
+
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // fetchRecommendedPeople();
+        });
+
+            initActionableRecommendations(data["Actionable Recommendations"])
+            initSkillsAnalysis(data);
+            createProjectImpactChart();
+            createCourseImpactChart(data);
+            initStrengthsWeaknesses();
+            initCourseSuggestions(data); // Add this line
+            initRecommendedPeople(data.recommended_People_linkdin, 'recommendedPeopleLinkedInList');
+            initRecommendedPeople(data.recommendedPeople_instagram, 'recommendedPeopleInstagramList');
+            initRecommendedPeople(data.recommendedPeople_twitter, 'recommendedPeopleTwitterList');
+
+
+            
+
+        }
+
+        function initCourseSuggestions(data) {
+            const suggestionsList = document.getElementById('courseSuggestionsList');
+            suggestionsList.innerHTML = ''; // Clear existing items
+                console.log("course_suggestions",data.course_impact)
+            const suggestions = [
+                { title: "Course Suggestion 1", content: data.course_impact.suggestion1 },
+                { title: "Course Suggestion 2", content: data.course_impact.suggestion2 },
+                { title: "Course Suggestion 3", content: data.course_impact.suggestion3 }
+            ];
+
+            suggestions.forEach((suggestion, index) => {
+                const li = document.createElement('li');
+                li.className = 'suggestion-item';
+                li.innerHTML = `
+                
+                <p class="mt-1 text-sm text-gray-700">${suggestion.content}</p>
+            `;
+                suggestionsList.appendChild(li);
+            });
+
+        }
+
+
+        function animateValue(element, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                element.textContent = `${Math.floor(progress * (end - start) + start)}%`;
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+        function initStrengthsWeaknesses() {
+            const strengthsList = document.getElementById('strengthsList');
+            const weaknessesList = document.getElementById('weaknessesList');
+
+            // Populate strengths
+            Object.entries(data.Strengths).forEach(([key, value]) => {
+                const strengthItem = document.createElement('div');
+                strengthItem.className = 'strength-item';
+                strengthItem.innerHTML = `<strong>${key}:</strong> ${value}`;
+                strengthsList.appendChild(strengthItem);
+            });
+
+            // Populate weaknesses
+            Object.entries(data.Weaknesses).forEach(([key, value]) => {
+                const weaknessItem = document.createElement('div');
+                weaknessItem.className = 'weakness-item';
+                weaknessItem.innerHTML = `<strong>${key}:</strong> ${value}`;
+                weaknessesList.appendChild(weaknessItem);
+            });
+        }
+        function initSkillsAnalysis(data) {
+            const skillsContainer = document.getElementById('skillsAnalysis');
+            const showMoreContainer = document.getElementById('showMoreContainer');
+            const showMoreBtn = showMoreContainer.querySelector('.show-more-btn');
+            let isExpanded = false;
+
+            const skills = data.skill_Score.skills_ratio;
+            const skillEntries = Object.entries(skills);
+
+            function getColor(score) {
+                if (score < 40) {
+                    const factor = score / 40;
+                    return `rgb(255, ${Math.round(65 + 155 * factor)}, ${Math.round(54 + 166 * factor)})`;
+                } else if (score < 70) {
+                    const factor = (score - 40) / 30;
+                    return `rgb(${Math.round(255 - 209 * factor) + 40}, ${Math.round(220 - 16 * factor) - 26}, ${Math.round(0 + 64 * factor) - 18})`;
+                } else {
+                    const factor = (score - 70) / 30;
+                    return `rgb(${Math.round(46 - 46 * factor) + 28}, ${Math.round(204 - 51 * factor) - 26}, ${Math.round(64 + 191 * factor) - 216})`;
+                }
+            }
+
+            function renderSkills() {
+                skillsContainer.innerHTML = '';
+                const visibleSkills = isExpanded ? skillEntries : skillEntries.slice(0, 4);
+
+                visibleSkills.forEach(([skill, score]) => {
+                    const skillElement = document.createElement('div');
+                    skillElement.className = 'mb-4';
+                    skillElement.innerHTML = `
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-sm font-medium text-gray-700">${skill}</span>
+                            <span class="text-sm font-medium text-gray-700">${score}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="skill-bar h-2.5 rounded-full" style="width: 0%; background-color: ${getColor(score)}"></div>
+                        </div>
+                    `;
+                    skillsContainer.appendChild(skillElement);
+
+                    setTimeout(() => {
+                        const progressBar = skillElement.querySelector('.skill-bar');
+                        progressBar.style.width = `${score}%`;
+                    }, 100);
+                });
+
+                showMoreContainer.classList.toggle('hidden', skillEntries.length <= 4);
+                showMoreBtn.textContent = isExpanded ? 'Show Less' : 'Show More';
+            }
+
+            showMoreBtn.addEventListener('click', () => {
+                isExpanded = !isExpanded;
+                renderSkills();
+            });
+
+            renderSkills();
+            document.getElementById('skillsAdvice').textContent = data.skill_Score.advice;
+        }
+        function createProjectImpactChart() {
+
+
+
+
+            const projectContainer = document.getElementById('projectAnalysis');
+            const pjt = data.project_impact.impact;
+
+            function getColor(score) {
+                if (score < 40) {
+                    const factor = score / 40;
+                    return `rgb(255, ${Math.round(65 + 155 * factor)}, ${Math.round(54 + 166 * factor)})`;
+                } else if (score < 70) {
+                    const factor = (score - 40) / 30;
+                    return `rgb(${Math.round(255 - 209 * factor) + 40}, ${Math.round(220 - 16 * factor) - 26}, ${Math.round(0 + 64 * factor) - 18})`;
+                } else {
+                    const factor = (score - 70) / 30;
+                    return `rgb(${Math.round(46 - 46 * factor) + 28}, ${Math.round(204 - 51 * factor) - 26}, ${Math.round(64 + 191 * factor) - 216})`;
+                }
+            }
+
+            Object.entries(pjt).forEach(([proj, score]) => {
+                const projectElement = document.createElement('div');
+                projectElement.className = 'mb-4';
+                projectElement.innerHTML = `
+        <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-medium text-gray-700">${proj}</span>
+            <span class="text-sm font-medium text-gray-700">${score}%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%; background-color: ${getColor(score)}"></div>
+        </div>
+    `;
+                projectContainer.appendChild(projectElement);
+
+                // Animate the proj bar
+                setTimeout(() => {
+                    const progressBar = projectElement.querySelector('.rounded-full div');
+                    progressBar.style.width = `${score}%`;
+                }, 100);
+            });
+
+
+
+
+
+
+
+
+
+
+
+
+            document.getElementById('projectImpactAdvice').textContent = data.project_impact.advice;
+
+            document.getElementById('projectImpactAdvice').textContent = data.project_impact.advice;
+            const suggestionsContainer = document.getElementById('projectSuggestions');
+            const suggestions = [
+                data.project_impact.suggestion1,
+                data.project_impact.suggestion2,
+                data.project_impact.suggestion3,
+
+
+
+
+            ];
+
+
+
+
+            suggestions.forEach((suggestion, index) => {
+                const li = document.createElement('li');
+                li.className = 'bg-blue-50 p-3 rounded-lg shadow-sm';
+                li.innerHTML = `                    
+                <p class="mt-1 text-sm text-gray-700">${suggestion}</p>
+            `;
+                suggestionsContainer.appendChild(li);
+            });
+
+
+
+
+        }
+        function createCourseImpactChart(data) {
+
+
+            const projectContainer = document.getElementById('courseImpact_Chart');
+            
+            const course_imt = data.course_impact.course_impact.impt;
+            
+            function getColor(score) {
+                if (score < 40) {
+                    const factor = score / 40;
+                    return `rgb(255, ${Math.round(65 + 155 * factor)}, ${Math.round(54 + 166 * factor)})`;
+                } else if (score < 70) {
+                    const factor = (score - 40) / 30;
+                    return `rgb(${Math.round(255 - 209 * factor) + 40}, ${Math.round(220 - 16 * factor) - 26}, ${Math.round(0 + 64 * factor) - 18})`;
+                } else {
+                    const factor = (score - 70) / 30;
+                    return `rgb(${Math.round(46 - 46 * factor) + 28}, ${Math.round(204 - 51 * factor) - 26}, ${Math.round(64 + 191 * factor) - 216})`;
+                }
+            }
+
+            Object.entries(course_imt).forEach(([proj, score]) => {
+                const course_element = document.createElement('div');
+                course_element.className = 'mb-4';
+                course_element.innerHTML = `
+        <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-medium text-gray-700">${proj}</span>
+            <span class="text-sm font-medium text-gray-700">${score}%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%; background-color: ${getColor(score)}"></div>
+        </div>
+    `;
+                projectContainer.appendChild(course_element);
+
+                // Animate the proj bar
+                setTimeout(() => {
+                    const progressBar = course_element.querySelector('.rounded-full div');
+                    progressBar.style.width = `${score}%`;
+                }, 100);
+            });
+
+            document.getElementById('courseAdvice').textContent = data.course_impact.course_advice;
+
+        }
+        function initRecommendations() {
+            const recommendationsList = document.getElementById('recommendationsList');
+            data.recommendations.forEach((recommendation, index) => {
+                const li = document.createElement('li');
+                li.textContent = recommendation;
+                li.className = 'recommendation-item opacity-0 transform translate-y-4 transition-all duration-500 ease-out';
+                recommendationsList.appendChild(li);
+
+                setTimeout(() => {
+                    li.classList.remove('opacity-0', 'translate-y-4');
+                }, index * 200);
+            });
+        }
+
+        function initPrintFunction() {
+            document.getElementById('printButton').addEventListener('click', () => {
+                window.print();
+            });
+        }
+
+        function initSmoothScrolling() {
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        }
+
+
+
+
+
+        
     document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         const success = urlParams.get('success') === 'true';
