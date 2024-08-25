@@ -475,7 +475,7 @@ html {
                         if (data.status === 'extracting') {
                             // Text extraction is happening, do nothing as we're already showing the extraction page
                         } else if (data.status === 'fetching') {
-                            mainContent.innerHTML = await fetchHtmlContent('/fetching_data.html');
+                            mainContent.innerHTML = await fetchHtmlContent('/data_fetching.html');
                         } else if (data.status === 'complete') {
                             displayResults(data);
                         }
