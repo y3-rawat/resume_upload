@@ -510,9 +510,8 @@ html {
         // Encode the data to be passed in the URL
         const encodedData = encodeURIComponent(JSON.stringify(data));
         // Redirect to result.html with the data
-        window.location.href = `/result.html?success=true&extractedText=none&apiResponse=${encodedData}`;
+        window.location.href = `/result.html?data=${encodedData}`;
     }
-   
 });
     </script>
 
