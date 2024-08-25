@@ -428,7 +428,7 @@ html {
         </main>
     </div>
     <script>
-       document.addEventListener('DOMContentLoaded', function () {
+      document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('resumeForm');
     const mainContent = document.querySelector('main');
 
@@ -449,7 +449,8 @@ html {
         }
 
         try {
-            mainContent.innerHTML = await fetchHtmlContent('/text_extracting.html');
+            // Show text extracting page
+            await updateContent('/text_extracting.html');
 
             const response = await fetch('/api/upload', {
                 method: 'POST',
@@ -473,11 +474,14 @@ html {
                     try {
                         const data = JSON.parse(part);
                         if (data.status === 'extracting') {
-                            // Text extraction is happening, do nothing as we're already showing the extraction page
+                            // Text extraction is happening, we're already showing the extraction page
                         } else if (data.status === 'fetching') {
-                            mainContent.innerHTML = await fetchHtmlContent('/data_fetching.html');
+                            // Show data fetching page
+                            await updateContent('/fetching_data.html');
                         } else if (data.status === 'complete') {
-                            displayResults(data);
+                            // Redirect to result.html with data
+                            redirectToResult(data);
+                            return;
                         }
                     } catch (e) {
                         console.error('Error parsing JSON:', e);
@@ -492,27 +496,24 @@ html {
         }
     });
 
+    async function updateContent(url) {
+        const content = await fetchHtmlContent(url);
+        mainContent.innerHTML = content;
+    }
+
     async function fetchHtmlContent(url) {
         const response = await fetch(url);
         return await response.text();
     }
 
-    function displayResults(data) {
-        const resultHtml = `
-            <h2 class="text-2xl font-bold mb-4">Results</h2>
-            <div class="mb-4">
-                <h3 class="text-xl font-semibold">Extracted Text:</h3>
-                <pre class="bg-gray-100 p-4 rounded">${data.extractedText}</pre>
-            </div>
-            <div>
-                <h3 class="text-xl font-semibold">API Response:</h3>
-                <pre class="bg-gray-100 p-4 rounded">${JSON.stringify(data.apiResponse, null, 2)}</pre>
-            </div>
-        `;
-        mainContent.innerHTML = resultHtml;
+    function redirectToResult(data) {
+        // Encode the data to be passed in the URL
+        const encodedData = encodeURIComponent(JSON.stringify(data));
+        // Redirect to result.html with the data
+        window.location.href = `/result.html?success=true&extractedText=none&apiResponse=${encodedData}`;
     }
+   
 });
-
     </script>
 
   
