@@ -456,6 +456,10 @@ html {
                 body: formData
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const reader = response.body.getReader();
             let result = '';
 
@@ -464,15 +468,19 @@ html {
                 if (done) break;
                 result += new TextDecoder().decode(value);
 
-                const parts = result.split('}');
+                const parts = result.split('\n');
                 for (const part of parts.slice(0, -1)) {
-                    const data = JSON.parse(part + '}');
-                    if (data.status === 'extracting') {
-                        // Text extraction is happening, do nothing as we're already showing the extraction page
-                    } else if (data.status === 'fetching') {
-                        mainContent.innerHTML = await fetchHtmlContent('/fetching_data.html');
-                    } else if (data.status === 'complete') {
-                        displayResults(data);
+                    try {
+                        const data = JSON.parse(part);
+                        if (data.status === 'extracting') {
+                            // Text extraction is happening, do nothing as we're already showing the extraction page
+                        } else if (data.status === 'fetching') {
+                            mainContent.innerHTML = await fetchHtmlContent('/fetching_data.html');
+                        } else if (data.status === 'complete') {
+                            displayResults(data);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing JSON:', e);
                     }
                 }
                 result = parts[parts.length - 1];
