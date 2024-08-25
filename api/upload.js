@@ -4,10 +4,6 @@ const cors = require('cors');
 const pdfParse = require('pdf-parse');
 const axios = require('axios');
 
-const safeEncodeURIComponent = (str) => {
-  return encodeURIComponent(str).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16));
-};
-
 module.exports = async (req, res) => {
   // Enable CORS
   await new Promise((resolve, reject) => {
@@ -18,6 +14,12 @@ module.exports = async (req, res) => {
       return resolve(result);
     });
   });
+
+  // Handle OPTIONS request for preflight
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
 
   // Check if it's a POST request
   if (req.method !== 'POST') {
@@ -34,10 +36,6 @@ module.exports = async (req, res) => {
   let fileName = '';
   let fileType = '';
   let formData = {};
-  let job_description = '';
-  let additional_information = '';
-  let experience = '';
-  let api = '';
 
   busboy.on('file', (fieldname, file, { filename, mimeType }) => {
     fileName = filename;
@@ -52,15 +50,6 @@ module.exports = async (req, res) => {
   });
 
   busboy.on('field', (fieldname, val) => {
-    if (fieldname === 'job_description') {
-      job_description = val;
-    } else if (fieldname === 'additional_information') {
-      additional_information = val;
-    } else if (fieldname === 'experience') {
-      experience = val;
-    } else if (fieldname === 'api') {
-      api = val;
-    }
     formData[fieldname] = val;
   });
 
@@ -82,11 +71,11 @@ module.exports = async (req, res) => {
       const apiResponse = await axios.post(externalApiUrl, {
         fileName: fileName,
         fileType: fileType,
-        job_description: job_description,
-        additional_information: additional_information,
-        experience: experience,
+        job_description: formData.job_description,
+        additional_information: formData.additional_information,
+        experience: formData.experience,
         extractedText: extractedText,
-        api: api
+        api: formData.api
       });
 
       // Step 3: Send final response
@@ -114,9 +103,6 @@ module.exports = async (req, res) => {
           filetype: fileType,
           filedata: new Binary(fileBuffer),
           extractedText: extractedText,
-          job_description: job_description,
-          additional_information: additional_information,
-          experience: experience,
           formData: formData,
           apiResponse: apiResponse.data
         });
