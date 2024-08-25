@@ -477,7 +477,7 @@ html {
                                     // Text extraction is happening, we're already showing the extraction page
                                 } else if (data.status === 'fetching') {
                                     // Show data fetching page
-                                    await updateContent('/fetching_data.html');
+                                    await updateContent('/data_fetching.html');
                                 } else if (data.status === 'complete') {
                                     // Redirect to result.html with data
                                     redirectToResult(data);
