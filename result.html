@@ -1750,62 +1750,77 @@ function displayError(message) {
 
 
 
-        
-    document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {
+        const safeDecodeURIComponent = (str) => {
+            if (!str) return '';
+            try {
+                return decodeURIComponent(str.replace(/\+/g, ' '));
+            } catch (e) {
+                console.error("Error decoding:", str, e);
+                return str; // Return the original string if decoding fails
+            }
+        };
+    
         const urlParams = new URLSearchParams(window.location.search);
         const success = urlParams.get('success') === 'true';
-        const resultContainer = document.getElementById('resultContainer');
-
+    
+        
+    
         if (success) {
             try {
-                const apiResponseStr = decodeURIComponent(urlParams.get('apiResponse'));
+                
+                const apiResponseStr = safeDecodeURIComponent(urlParams.get('apiResponse'));
                 const data = JSON.parse(apiResponseStr);
 
-                // Display only the API response data
-                displayApiResponse(data.apiResponse);
+                
+                const scoreCard = data.score_card;
+                    Object.keys(scoreCard).forEach(key => {
+                        updateScore(key, scoreCard[key]);
+                    });
+
+                    // Call other initialization functions here
+                    initSkillsAnalysis(data.skill_Score);
+                    
+
+                    initStrengthsWeaknesses(data.Strengths, data.Weaknesses);
+                    createCourseImpactChart(data);
+    
             } catch (error) {
-                console.error("Error processing API response:", error);
-                displayError("An error occurred while processing the results.");
+                console.error("Error processing success response:", error);
+              
             }
         } else {
-            const errorMessage = decodeURIComponent(urlParams.get('errorMessage'));
-            displayError(errorMessage || "An unknown error occurred.");
+            const errorMessage = safeDecodeURIComponent(urlParams.get('errorMessage'));
+           
+            if (errorMessage) {
+                extractedTextElement.innerHTML = `<h2>Error Details:</h2><pre>${errorMessage}</pre>`;
+            }
+            retryLink.style.display = 'block';
         }
     });
 
-    function displayApiResponse(apiResponse) {
-        const resultContainer = document.getElementById('resultContainer');
-        resultContainer.innerHTML = `
-            <h1 class="text-3xl font-bold mb-4">Resume Analysis Result</h1>
-            <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-                ${generateApiResponseHtml(apiResponse)}
-            </div>
-        `;
-    }
+      
 
-    function generateApiResponseHtml(apiResponse) {
-        // Generate HTML based on the structure of your API response
-        // This is a placeholder implementation. Adjust according to your actual API response structure.
-        let html = '';
-        for (const [key, value] of Object.entries(apiResponse)) {
-            html += `<div class="mb-4">
-                        <h2 class="text-xl font-semibold">${key}</h2>
-                        <p>${JSON.stringify(value, null, 2)}</p>
-                     </div>`;
-        }
-        return html;
-    }
+        // document.addEventListener('DOMContentLoaded', fetchData);
 
-    function displayError(message) {
-        const resultContainer = document.getElementById('resultContainer');
-        resultContainer.innerHTML = `
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                <strong class="font-bold">Error!</strong>
-                <span class="block sm:inline">${message}</span>
-            </div>
-        `;
-    }
-    
+
+
+        document.getElementById('printButton').addEventListener('click', function () {
+        // Options for the PDF
+        var opt = {
+            margin: 0, // Reduce margins to fit content better
+            filename: 'Full_report.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 3 }, // Increase scale for better resolution
+            jsPDF: { unit: 'px', format: [window.innerWidth, document.body.scrollHeight], orientation: 'portrait' } // Use px and set dimensions to cover entire height
+        };
+
+        // Get the entire dashboard content
+        var element = document.body;
+
+        // Generate the PDF
+        html2pdf().set(opt).from(element).save();
+    });
 
         
     </script>
