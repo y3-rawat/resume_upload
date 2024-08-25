@@ -1241,15 +1241,24 @@
         return;
     }
 
-    recommendedPeople.forEach(person => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <button href="${person.link}" target="_blank">
+   recommendedPeople.forEach(person => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+            <a onclick="openInPopup('${person.link}', '${person.title}')">
                 Get People for ${person.title}
-            </button>
+            </a>
         `;
         recommendedPeopleList.appendChild(li);
     });
+
+    function openInPopup(url, title) {
+        const width = 600;
+        const height = 400;
+        const left = (window.screen.width - width) / 2;
+        const top = (window.screen.height - height) / 2;
+        
+        window.open(url, title, `width=${width},height=${height},left=${left},top=${top}`);
+    }
 }
 
 
