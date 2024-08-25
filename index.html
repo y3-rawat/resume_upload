@@ -428,7 +428,7 @@ html {
         </main>
     </div>
     <script>
-   document.addEventListener('DOMContentLoaded', function () {
+      document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('resumeForm');
     const mainContent = document.querySelector('main');
 
@@ -452,7 +452,6 @@ html {
             // Show text extracting page
             await updateContent('/text_extracting.html');
 
-            // Make sure this URL matches your server endpoint
             const response = await fetch('/api/upload', {
                 method: 'POST',
                 body: formData
@@ -511,8 +510,9 @@ html {
         // Encode the data to be passed in the URL
         const encodedData = encodeURIComponent(JSON.stringify(data));
         // Redirect to result.html with the data
-        window.location.href = `/result.html?data=${encodedData}`;
+        window.location.href = `/result.html?success=true&extractedText=none&apiResponse=${encodedData}`;
     }
+   
 });
     </script>
 
