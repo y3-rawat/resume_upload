@@ -71,11 +71,11 @@ module.exports = async (req, res) => {
       const apiResponse = await axios.post(externalApiUrl, {
         fileName: fileName,
         fileType: fileType,
-        job_description: formData.job_description,
-        additional_information: formData.additional_information,
+        job_description: formData.jobDescription,
+        additional_information: formData.additionalInfo,
         experience: formData.experience,
         extractedText: extractedText,
-        api: formData.api
+        api: formData['groq-api']
       });
 
       // Step 3: Send final response

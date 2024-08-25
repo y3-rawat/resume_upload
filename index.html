@@ -428,94 +428,92 @@ html {
         </main>
     </div>
     <script>
-      document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('resumeForm');
-    const mainContent = document.querySelector('main');
-
-    form.addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const formData = new FormData(form);
-        const file = formData.get('file-upload');
-
-        if (!file) {
-            alert('Please select a file to upload.');
-            return;
-        }
-
-        if (file.type !== 'application/pdf') {
-            alert('Please select a PDF file.');
-            return;
-        }
-
-        try {
-            // Show text extracting page
-            await updateContent('/text_extracting.html');
-
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const reader = response.body.getReader();
-            let result = '';
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                result += new TextDecoder().decode(value);
-
-                const parts = result.split('\n');
-                for (const part of parts.slice(0, -1)) {
-                    try {
-                        const data = JSON.parse(part);
-                        if (data.status === 'extracting') {
-                            // Text extraction is happening, we're already showing the extraction page
-                        } else if (data.status === 'fetching') {
-                            // Show data fetching page
-                            await updateContent('/fetching_data.html');
-                        } else if (data.status === 'complete') {
-                            // Redirect to result.html with data
-                            redirectToResult(data);
-                            return;
-                        }
-                    } catch (e) {
-                        console.error('Error parsing JSON:', e);
-                    }
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('resumeForm');
+            const mainContent = document.querySelector('main');
+    
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+    
+                const formData = new FormData(form);
+                const file = formData.get('file-upload');
+    
+                if (!file) {
+                    alert('Please select a file to upload.');
+                    return;
                 }
-                result = parts[parts.length - 1];
+    
+                if (file.type !== 'application/pdf') {
+                    alert('Please select a PDF file.');
+                    return;
+                }
+    
+                try {
+                    // Show text extracting page
+                    await updateContent('/text_extracting.html');
+    
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+    
+                    const reader = response.body.getReader();
+                    let result = '';
+    
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        result += new TextDecoder().decode(value);
+    
+                        const parts = result.split('\n');
+                        for (const part of parts.slice(0, -1)) {
+                            try {
+                                const data = JSON.parse(part);
+                                if (data.status === 'extracting') {
+                                    // Text extraction is happening, we're already showing the extraction page
+                                } else if (data.status === 'fetching') {
+                                    // Show data fetching page
+                                    await updateContent('/fetching_data.html');
+                                } else if (data.status === 'complete') {
+                                    // Redirect to result.html with data
+                                    redirectToResult(data);
+                                    return;
+                                }
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e);
+                            }
+                        }
+                        result = parts[parts.length - 1];
+                    }
+    
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                }
+            });
+    
+            async function updateContent(url) {
+                const content = await fetchHtmlContent(url);
+                mainContent.innerHTML = content;
             }
-
-        } catch (error) {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again.');
-        }
-    });
-
-    async function updateContent(url) {
-        const content = await fetchHtmlContent(url);
-        mainContent.innerHTML = content;
-    }
-
-    async function fetchHtmlContent(url) {
-        const response = await fetch(url);
-        return await response.text();
-    }
-
-    function redirectToResult(data) {
-        // Encode the data to be passed in the URL
-        const encodedData = encodeURIComponent(JSON.stringify(data));
-        // Redirect to result.html with the data
-        window.location.href = `/result.html?success=true&extractedText=none&apiResponse=${encodedData}`;
-    }
-   
-});
-    </script>
-
+    
+            async function fetchHtmlContent(url) {
+                const response = await fetch(url);
+                return await response.text();
+            }
+    
+            function redirectToResult(data) {
+                // Encode the data to be passed in the URL
+                const encodedData = encodeURIComponent(JSON.stringify(data));
+                // Redirect to result.html with the data
+                window.location.href = `/result.html?success=true&extractedText=none&apiResponse=${encodedData}`;
+            }
+        });
+        </script>
   
 </body>
 
