@@ -1242,12 +1242,12 @@
     }
 
     recommendedPeople.forEach(person => {
-    const li = document.createElement('li');
-    li.innerHTML = `
-        <button onclick="openInPopup('${person.link}', '${person.title}')">
-            Get People for ${person.title}
-        </button>
-    `;
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <button onclick="openInPopup('${person.link}', '${person.title}')">
+                Peoples of ${person.title}
+            </button>
+        `;
         recommendedPeopleList.appendChild(li);
     });
 
@@ -1259,8 +1259,6 @@
         
         window.open(url, title, `width=${width},height=${height},left=${left},top=${top}`);
     }
-}
-
 
 
         document.addEventListener('DOMContentLoaded', function() {
