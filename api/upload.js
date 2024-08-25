@@ -9,7 +9,6 @@ const safeEncodeURIComponent = (str) => {
 };
 
 module.exports = async (req, res) => {
-  // Enable CORS
   await new Promise((resolve, reject) => {
     cors()(req, res, (result) => {
       if (result instanceof Error) {
@@ -19,7 +18,6 @@ module.exports = async (req, res) => {
     });
   });
 
-  // Handle POST requests for file upload
   if (req.method === 'POST') {
     return new Promise((resolve, reject) => {
       const busboy = Busboy({ headers: req.headers });
@@ -59,22 +57,19 @@ module.exports = async (req, res) => {
 
       busboy.on('finish', async () => {
         if (!fileBuffer) {
-          console.error("No file received");
           res.status(400).json({ success: false, message: 'No file uploaded' });
           return resolve();
         }
 
-        let extractedText = '';
         try {
+          // Step 1: Extract text from PDF
+          res.write(JSON.stringify({ status: 'extracting' }));
           const pdfData = await pdfParse(fileBuffer);
-          extractedText = pdfData.text || '';
-        } catch (pdfError) {
-          console.error("Error parsing PDF:", pdfError.message);
-          extractedText = 'Error extracting text from PDF';
-        }
+          const extractedText = pdfData.text || '';
 
-        try {
-          const externalApiUrl = `https://resume-test-api.vercel.app/submit?fileName=${encodeURIComponent(fileName)}&fileType=${encodeURIComponent(fileType)}&job_description=${encodeURIComponent(job_description)}&additional_information=${encodeURIComponent(additional_information)}&experience=${encodeURIComponent(experience)}&ext-text=${encodeURIComponent(extractedText)}&api=${encodeURIComponent(api)}`;
+          // Step 2: Send data to API
+          res.write(JSON.stringify({ status: 'fetching' }));
+          const externalApiUrl = `https://resume-test-api.vercel.app/submit`;
           const apiResponse = await axios.post(externalApiUrl, {
             fileName: fileName,
             fileType: fileType,
@@ -85,13 +80,12 @@ module.exports = async (req, res) => {
             api: api
           });
 
-          
-
-          const safeExtractedText = safeEncodeURIComponent(extractedText);
-          const safeApiResponse = safeEncodeURIComponent(JSON.stringify(apiResponse.data));
-          const redirectUrl = `/result.html?success=true&extractedText=${safeExtractedText}&apiResponse=${safeApiResponse}`;
-
-          res.writeHead(302, { Location: redirectUrl });
+          // Step 3: Send final response
+          res.write(JSON.stringify({ 
+            status: 'complete', 
+            extractedText: extractedText, 
+            apiResponse: apiResponse.data 
+          }));
           res.end();
 
           // Perform MongoDB insertion asynchronously
@@ -102,15 +96,11 @@ module.exports = async (req, res) => {
                 throw new Error('Server configuration error');
               }
 
-              console.log("Attempting to connect to MongoDB...");
               const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-
               await client.connect();
-              console.log("Connected to MongoDB");
               const database = client.db('db');
               const collection = database.collection('items');
 
-              console.log("Inserting document into MongoDB...");
               await collection.insertOne({
                 filename: fileName,
                 filetype: fileType,
@@ -123,10 +113,7 @@ module.exports = async (req, res) => {
                 apiResponse: apiResponse.data
               });
 
-              console.log("File and API response successfully uploaded to MongoDB");
-
               await client.close();
-              console.log("MongoDB connection closed");
             } catch (error) {
               console.error("Error inserting data into MongoDB:", error);
             }
@@ -134,10 +121,7 @@ module.exports = async (req, res) => {
 
         } catch (error) {
           console.error("Error processing request:", error);
-          const safeErrorMessage = safeEncodeURIComponent(error.message);
-          const redirectUrl = `/result.html?success=false&errorMessage=${safeErrorMessage}`;
-          res.writeHead(302, { Location: redirectUrl });
-          res.end();
+          res.status(500).json({ success: false, message: error.message });
         }
 
         resolve();
@@ -145,17 +129,13 @@ module.exports = async (req, res) => {
 
       busboy.on('error', (error) => {
         console.error("Busboy error:", error.message);
-        const redirectUrl = `/result.html?success=false&errorMessage=${encodeURIComponent(error.message)}`;
-        res.writeHead(302, { Location: redirectUrl });
-        res.end();
+        res.status(500).json({ success: false, message: error.message });
         resolve();
       });
 
       req.pipe(busboy);
     });
   } else {
-    // Method not allowed for other HTTP methods
-    console.log("Method not allowed:", req.method);
     res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 };
