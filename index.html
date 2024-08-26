@@ -495,118 +495,144 @@ display: none;
       width: 0px;
     }
   }
+  .progress-bar-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 0.25rem;
+            margin-top: 1rem;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 0.5rem;
+            background-color: #0066FF;
+            border-radius: 0.25rem;
+            transition: width 0.3s ease;
+        }
 </style>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-    const dropArea = document.getElementById('dropArea');
-    const fileInput = document.getElementById('file-upload');
-    const fileNameDisplay = document.getElementById('fileName');
-    const resumeError = document.getElementById('resumeError');
-    const fileInfo = document.getElementById('fileInfo');
-    const form = document.getElementById('resumeForm');
-    const progressBar = document.getElementById('progressBar');
-    const jobDescription = document.getElementById('jobDescription');
-    const additionalInfo = document.getElementById('additionalInfo');
-    const statusDiv = document.getElementById('status');
-    const api = document.getElementById('groq-api');
-    const loader = document.getElementById('loader');
-
-    fileInput.addEventListener('change', function () {
-        if (fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            fileNameDisplay.textContent = `Selected file: ${file.name}`;
-        } else {
-            fileNameDisplay.textContent = '';
-        }
-    });
-
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        let file = fileInput.files[0];
-        if (!file) {
-            updateStatus('Please select a file to upload.', 'red');
-            return;
-        }
-
-        if (file.type !== 'application/pdf') {
-            updateStatus('Please select a PDF file.', 'red');
-            return;
-        }
-
-        let selectedExperience = document.querySelector('input[name="experience"]:checked');
-        if (!selectedExperience) {
-            updateStatus('Please select your experience level.', 'red');
-            return;
-        }
-
-        let formData = new FormData();
-        formData.append('pdf', file);
-        formData.append('job_description', jobDescription.value);
-        formData.append('additional_information', additionalInfo.value);
-        formData.append('experience', selectedExperience.value);
-        formData.append('api', api.value);
-
-        let xhr = new XMLHttpRequest();
-
-        xhr.upload.addEventListener('progress', function (e) {
-            if (e.lengthComputable) {
-                let percentComplete = (e.loaded / e.total) * 100;
-                progressBar.style.width = percentComplete + '%';
-                updateStatus(`Uploading: ${percentComplete.toFixed(2)}%`, 'blue');
-            }
-        });
-
-        xhr.addEventListener('load', function () {
-            if (xhr.status === 200) {
-                updateStatus('File uploaded successfully! Redirecting...', 'green');
-                if (xhr.responseURL !== xhr.url) {
-                    window.location.href = xhr.responseURL;
+   document.addEventListener('DOMContentLoaded', function () {
+            const fileInput = document.getElementById('file-upload');
+            const fileNameDisplay = document.getElementById('fileName');
+            const resumeError = document.getElementById('resumeError');
+            const fileInfo = document.getElementById('fileInfo');
+            const form = document.getElementById('resumeForm');
+            const progressBar = document.getElementById('progressBar');
+            const statusDiv = document.getElementById('status');
+            const loader = document.getElementById('loader');
+            const analyzeButton = document.getElementById('analyzeButton');
+            fileInput.addEventListener('change', function () {
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    fileNameDisplay.textContent = `Selected file: ${file.name}`;
+                    analyzeButton.disabled = false;
                 } else {
-                    try {
-                        let response = JSON.parse(xhr.responseText);
-                        if (response.redirectUrl) {
-                            window.location.href = response.redirectUrl;
-                        } else {
-                            updateStatus('Upload successful, but no redirect information received.', 'blue');
-                        }
-                    } catch (error) {
-                        updateStatus('Upload successful, but failed to parse server response.', 'orange');
-                    }
+                    fileNameDisplay.textContent = '';
+                    analyzeButton.disabled = true;
                 }
-            } else {
-                updateStatus('Failed to upload file. Server responded with status ' + xhr.status, 'red');
+            });
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                let file = fileInput.files[0];
+                if (!file) {
+                    updateStatus('Please select a file to upload.', 'red');
+                    return;
+                }
+
+                if (file.type !== 'application/pdf') {
+                    updateStatus('Please select a PDF file.', 'red');
+                    return;
+                }
+
+                let selectedExperience = document.querySelector('input[name="experience"]:checked');
+                if (!selectedExperience) {
+                    updateStatus('Please select your experience level.', 'red');
+                    return;
+                }
+
+                let formData = new FormData(form);
+                formData.append('pdf', file);
+
+                let xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', function (e) {
+                    if (e.lengthComputable) {
+                        let percentComplete = (e.loaded / e.total) * 100;
+                        progressBar.style.width = percentComplete + '%';
+                        updateStatus(`Uploading and extracting text: ${percentComplete.toFixed(2)}%`, 'blue');
+                    }
+                });
+
+                xhr.addEventListener('load', function () {
+                    if (xhr.status === 302) {
+                        window.location.href = xhr.getResponseHeader('Location');
+                    } else {
+                        updateStatus('Failed to process the resume. Please try again.', 'red');
+                    }
+                    progressBar.style.width = '0%';
+                    hideLoader();
+                });
+
+                xhr.addEventListener('error', function () {
+                    updateStatus('An error occurred while processing the file.', 'red');
+                    progressBar.style.width = '0%';
+                    hideLoader();
+                });
+
+                updateStatus('Starting upload and text extraction...', 'blue');
+                showLoader();
+                xhr.open('POST', '/api/upload', true);
+                xhr.send(formData);
+            });
+
+            function updateStatus(message, color) {
+                statusDiv.textContent = message;
+                statusDiv.style.color = color;
             }
-            progressBar.style.width = '0%';
-            hideLoader();
+
+            function showLoader() {
+                loader.classList.remove('hidden');
+            }
+
+            function hideLoader() {
+                loader.classList.add('hidden');
+            }
         });
 
-        xhr.addEventListener('error', function () {
-            updateStatus('An error occurred while uploading the file.', 'red');
-            progressBar.style.width = '0%';
-            hideLoader();
-        });
+        function openSmallWindow() {
+            const width = 1000;
+            const height = 600;
+            const left = (window.screen.width - width) / 2;
+            const top = (window.screen.height - height) / 2;
 
-        updateStatus('Starting upload...', 'blue');
-        showLoader();
-        xhr.open('POST', '/api/upload', true);
-        xhr.send(formData);
-    });
+            window.open(
+                'https://console.groq.com/keys',
+                'smallWindow',
+                `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
+            );
+        }
 
-    function updateStatus(message, color) {
-        statusDiv.textContent = message;
-        statusDiv.style.color = color;
-    }
+        function showModal() {
+            const modal = document.getElementById('myModal');
+            modal.classList.remove('hide');
+            modal.classList.add('show');
+            modal.style.display = 'flex';
+        }
 
-    function showLoader() {
-        loader.classList.remove('hidden');
-    }
+        function closeModal() {
+            const modal = document.getElementById('myModal');
+            modal.classList.remove('show');
+            modal.classList.add('hide');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
 
-    function hideLoader() {
-        loader.classList.add('hidden');
-    }
-});
-</script>
+        // Ensure modal is hidden initially
+        document.getElementById('myModal').style.display = 'none';
+        document.getElementById('myModal').classList.add('hide');
+    </script>
 
 <body class="bg-gray-100">
     <div id="loader" class="hidden">
@@ -711,12 +737,12 @@ display: none;
 
                     </div>
 
-                    <div class="progress-bar-container hidden mt-4" id="progressBarContainer">
-                        <div class="progress-bar bg-primary h-2 rounded-full" id="progressBar"></div>
+                    <div class="progress-bar-container mt-4" id="progressBarContainer">
+                        <div class="progress-bar" id="progressBar"></div>
                     </div>
-
                     <p id="fileInfo" class="success-message hidden mt-2"></p>
                     <p id="resumeError" class="error-message hidden mt-2"></p>
+                    
                 </div>
                 <div style="margin: 1%;"></div>
                 
