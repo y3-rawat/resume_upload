@@ -1665,6 +1665,7 @@ function displayError(message) {
 
             document.getElementById('projectImpactAdvice').textContent = data.project_impact.advice;
             const suggestionsContainer = document.getElementById('projectSuggestions');
+            console.log("project suggestions ",data.project_impact.suggestion1)
             const suggestions = [
                 data.project_impact.suggestion1,
                 data.project_impact.suggestion2,
