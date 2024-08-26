@@ -1181,6 +1181,7 @@
       
         function createExperienceRelevanceChart(data) {
             console.log("data- experience relevance-->",data)
+            console.log("project suggestions ",data.project_impact.suggestion1)
 
             const projectContainer = document.getElementById('experienceRelevanceChart');
             const experience_registence = data.experience_relevance.imp;
@@ -1665,7 +1666,7 @@ function displayError(message) {
 
             document.getElementById('projectImpactAdvice').textContent = data.project_impact.advice;
             const suggestionsContainer = document.getElementById('projectSuggestions');
-            console.log("project suggestions ",data.project_impact.suggestion1)
+            
             const suggestions = [
                 data.project_impact.suggestion1,
                 data.project_impact.suggestion2,
