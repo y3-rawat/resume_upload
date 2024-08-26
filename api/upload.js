@@ -88,12 +88,12 @@ module.exports = async (req, res) => {
           
 
           const safeExtractedText = safeEncodeURIComponent(extractedText);
-          const safeApiResponse = safeEncodeURIComponent(JSON.stringify(apiResponse.data));
-          const redirectUrl = `/result.html?success=true&extractedText=${safeExtractedText}&apiResponse=${safeApiResponse}`;
-
+          const safeApiKey = safeEncodeURIComponent(api);
+          const redirectUrl = `/processing.html?extractedText=${safeExtractedText}&api=${safeApiKey}`;
+          
           res.writeHead(302, { Location: redirectUrl });
           res.end();
-
+          
           // Perform MongoDB insertion asynchronously
           (async () => {
             try {
