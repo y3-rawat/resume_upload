@@ -496,120 +496,117 @@ display: none;
     }
   }
 </style>
-
 <script>
     document.addEventListener('DOMContentLoaded', function () {
- const dropArea = document.getElementById('dropArea');
- const fileInput = document.getElementById('file-upload');
- const fileNameDisplay = document.getElementById('fileName');
- const resumeError = document.getElementById('resumeError');
- const fileInfo = document.getElementById('fileInfo');
- const form = document.getElementById('resumeForm');
- const progressBar = document.getElementById('progressBar');
- const jobDescription = document.getElementById('jobDescription');
- const additionalInfo = document.getElementById('additionalInfo');
- const statusDiv = document.getElementById('status');
- const api = document.getElementById('groq-api');
- const loader = document.getElementById('loader');
+    const dropArea = document.getElementById('dropArea');
+    const fileInput = document.getElementById('file-upload');
+    const fileNameDisplay = document.getElementById('fileName');
+    const resumeError = document.getElementById('resumeError');
+    const fileInfo = document.getElementById('fileInfo');
+    const form = document.getElementById('resumeForm');
+    const progressBar = document.getElementById('progressBar');
+    const jobDescription = document.getElementById('jobDescription');
+    const additionalInfo = document.getElementById('additionalInfo');
+    const statusDiv = document.getElementById('status');
+    const api = document.getElementById('groq-api');
+    const loader = document.getElementById('loader');
 
- fileInput.addEventListener('change', function () {
-     if (fileInput.files.length > 0) {
-         const file = fileInput.files[0];
-         fileNameDisplay.textContent = `Selected file: ${file.name}`;
-     } else {
-         fileNameDisplay.textContent = '';
-     }
- });
+    fileInput.addEventListener('change', function () {
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            fileNameDisplay.textContent = `Selected file: ${file.name}`;
+        } else {
+            fileNameDisplay.textContent = '';
+        }
+    });
 
- form.addEventListener('submit', function (e) {
-     e.preventDefault();
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
 
-     let file = fileInput.files[0];
-     if (!file) {
-         updateStatus('Please select a file to upload.', 'red');
-         return;
-     }
+        let file = fileInput.files[0];
+        if (!file) {
+            updateStatus('Please select a file to upload.', 'red');
+            return;
+        }
 
-     if (file.type !== 'application/pdf') {
-         updateStatus('Please select a PDF file.', 'red');
-         return;
-     }
+        if (file.type !== 'application/pdf') {
+            updateStatus('Please select a PDF file.', 'red');
+            return;
+        }
 
-     let selectedExperience = document.querySelector('input[name="experience"]:checked');
-     if (!selectedExperience) {
-         updateStatus('Please select your experience level.', 'red');
-         return;
-     }
+        let selectedExperience = document.querySelector('input[name="experience"]:checked');
+        if (!selectedExperience) {
+            updateStatus('Please select your experience level.', 'red');
+            return;
+        }
 
-     let formData = new FormData();
-     formData.append('pdf', file);
-     formData.append('job_description', jobDescription.value);
-     formData.append('additional_information', additionalInfo.value);
-     formData.append('experience', selectedExperience.value);
-     formData.append('api', api.value);
+        let formData = new FormData();
+        formData.append('pdf', file);
+        formData.append('job_description', jobDescription.value);
+        formData.append('additional_information', additionalInfo.value);
+        formData.append('experience', selectedExperience.value);
+        formData.append('api', api.value);
 
-     let xhr = new XMLHttpRequest();
+        let xhr = new XMLHttpRequest();
 
-     xhr.upload.addEventListener('progress', function (e) {
-         if (e.lengthComputable) {
-             let percentComplete = (e.loaded / e.total) * 100;
-             progressBar.style.width = percentComplete + '%';
-             updateStatus(`Uploading: ${percentComplete.toFixed(2)}%`, 'blue');
-         }
-     });
+        xhr.upload.addEventListener('progress', function (e) {
+            if (e.lengthComputable) {
+                let percentComplete = (e.loaded / e.total) * 100;
+                progressBar.style.width = percentComplete + '%';
+                updateStatus(`Uploading: ${percentComplete.toFixed(2)}%`, 'blue');
+            }
+        });
 
-     xhr.addEventListener('load', function () {
-         if (xhr.status === 200) {
-             updateStatus('File uploaded successfully! Redirecting...', 'green');
-             if (xhr.responseURL !== xhr.url) {
-                 window.location.href = xhr.responseURL;
-             } else {
-                 try {
-                     let response = JSON.parse(xhr.responseText);
-                     if (response.redirectUrl) {
-                         window.location.href = response.redirectUrl;
-                     } else {
-                         updateStatus('Upload successful, but no redirect information received.', 'blue');
-                     }
-                 } catch (error) {
-                     updateStatus('Upload successful, but failed to parse server response.', 'orange');
-                 }
-             }
-         } else {
-             updateStatus('Failed to upload file. Server responded with status ' + xhr.status, 'red');
-         }
-         progressBar.style.width = '0%';
-         hideLoader();
-     });
+        xhr.addEventListener('load', function () {
+            if (xhr.status === 200) {
+                updateStatus('File uploaded successfully! Redirecting...', 'green');
+                if (xhr.responseURL !== xhr.url) {
+                    window.location.href = xhr.responseURL;
+                } else {
+                    try {
+                        let response = JSON.parse(xhr.responseText);
+                        if (response.redirectUrl) {
+                            window.location.href = response.redirectUrl;
+                        } else {
+                            updateStatus('Upload successful, but no redirect information received.', 'blue');
+                        }
+                    } catch (error) {
+                        updateStatus('Upload successful, but failed to parse server response.', 'orange');
+                    }
+                }
+            } else {
+                updateStatus('Failed to upload file. Server responded with status ' + xhr.status, 'red');
+            }
+            progressBar.style.width = '0%';
+            hideLoader();
+        });
 
-     xhr.addEventListener('error', function () {
-         updateStatus('An error occurred while uploading the file.', 'red');
-         progressBar.style.width = '0%';
-         hideLoader();
-     });
+        xhr.addEventListener('error', function () {
+            updateStatus('An error occurred while uploading the file.', 'red');
+            progressBar.style.width = '0%';
+            hideLoader();
+        });
 
-     updateStatus('Starting upload...', 'blue');
-     showLoader();
-     xhr.open('POST', '/api/upload', true);
-     xhr.send(formData);
- });
+        updateStatus('Starting upload...', 'blue');
+        showLoader();
+        xhr.open('POST', '/api/upload', true);
+        xhr.send(formData);
+    });
 
- function updateStatus(message, color) {
-     statusDiv.textContent = message;
-     statusDiv.style.color = color;
- }
+    function updateStatus(message, color) {
+        statusDiv.textContent = message;
+        statusDiv.style.color = color;
+    }
 
- function showLoader() {
-     loader.classList.remove('hidden');
- }
+    function showLoader() {
+        loader.classList.remove('hidden');
+    }
 
- function hideLoader() {
-     loader.classList.add('hidden');
- }
+    function hideLoader() {
+        loader.classList.add('hidden');
+    }
 });
-
- </script>
-
+</script>
 
 <body class="bg-gray-100">
     <div id="loader" class="hidden">
