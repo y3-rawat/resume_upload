@@ -1,4 +1,3 @@
-const { MongoClient, Binary } = require('mongodb');
 const Busboy = require('busboy');
 const cors = require('cors');
 const pdfParse = require('pdf-parse');
@@ -85,52 +84,12 @@ module.exports = async (req, res) => {
             api: api
           });
 
-          
-
           const safeExtractedText = safeEncodeURIComponent(extractedText);
-          const safeApiKey = safeEncodeURIComponent(api);
-          const redirectUrl = `/processing.html?extractedText=${safeExtractedText}&api=${safeApiKey}`;
-          
+          const safeApiResponse = safeEncodeURIComponent(JSON.stringify(apiResponse.data));
+          const redirectUrl = `/result.html?success=true&extractedText=${safeExtractedText}&apiResponse=${safeApiResponse}`;
+
           res.writeHead(302, { Location: redirectUrl });
           res.end();
-          
-          // Perform MongoDB insertion asynchronously
-          (async () => {
-            try {
-              const uri = process.env.MONGODB_URI;
-              if (!uri) {
-                throw new Error('Server configuration error');
-              }
-
-              console.log("Attempting to connect to MongoDB...");
-              const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-
-              await client.connect();
-              console.log("Connected to MongoDB");
-              const database = client.db('db');
-              const collection = database.collection('items');
-
-              console.log("Inserting document into MongoDB...");
-              await collection.insertOne({
-                filename: fileName,
-                filetype: fileType,
-                filedata: new Binary(fileBuffer),
-                extractedText: extractedText,
-                job_description: job_description,
-                additional_information: additional_information,
-                experience: experience,
-                formData: formData,
-                apiResponse: apiResponse.data
-              });
-
-              console.log("File and API response successfully uploaded to MongoDB");
-
-              await client.close();
-              console.log("MongoDB connection closed");
-            } catch (error) {
-              console.error("Error inserting data into MongoDB:", error);
-            }
-          })();
 
         } catch (error) {
           console.error("Error processing request:", error);
