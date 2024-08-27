@@ -2,9 +2,9 @@ const axios = require('axios');
 
 module.exports = async (req, res) => {
   if (req.method === 'POST') {
-    const { job_description, additional_information, experience, extractedText, api } = req.body;
-
     try {
+      const { job_description, additional_information, experience, extractedText, api } = req.body;
+
       const externalApiUrl = `https://resume-test-api.vercel.app/submit`;
       const apiResponse = await axios.post(externalApiUrl, {
         job_description,
