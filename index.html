@@ -9,6 +9,8 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 
 
@@ -511,7 +513,7 @@ display: none;
         }
 </style>
 <script>
-     document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
         const fileInput = document.getElementById('file-upload');
         const fileNameDisplay = document.getElementById('fileName');
         const resumeError = document.getElementById('resumeError');
@@ -542,7 +544,30 @@ display: none;
             }
         });
 
-        nextButton.addEventListener('click', function () {
+        async function handleFileUpload(file) {
+            const reader = new FileReader();
+            return new Promise((resolve, reject) => {
+                reader.onload = async function(event) {
+                    const typedarray = new Uint8Array(event.target.result);
+                    try {
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        let text = '';
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const content = await page.getTextContent();
+                            text += content.items.map(item => item.str).join(' ') + '\n';
+                        }
+                        resolve(text);
+                    } catch (error) {
+                        console.error('Error parsing PDF:', error);
+                        reject(error);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        nextButton.addEventListener('click', async function () {
             if (fileInput.files.length === 0) {
                 updateStatus('Please select a file to upload.', 'red');
                 return;
@@ -554,83 +579,61 @@ display: none;
                 return;
             }
 
-            let formData = new FormData();
-            formData.append('file-upload', file);
-
-            fetch('/api/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    extractedText = data.extractedText;
-                    updateStatus('Text extracted successfully!', 'green');
-                    showNextSections();
-                } else {
-                    updateStatus(data.message || 'Failed to process the resume. Please try again.', 'red');
-                }
-                hideLoader();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                updateStatus('An error occurred while processing the file.', 'red');
-                hideLoader();
-            });
-
-            updateStatus('Starting upload and text extraction...', 'blue');
             showLoader();
+            updateStatus('Starting text extraction...', 'blue');
+
+            try {
+                extractedText = await handleFileUpload(file);
+                updateStatus('Text extracted successfully!', 'green');
+                showNextSections();
+            } catch (error) {
+                updateStatus('Failed to process the PDF. Please try again.', 'red');
+            } finally {
+                hideLoader();
+            }
         });
 
         if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const jobDescription = document.getElementById('jobDescription')?.value || '';
-            const additionalInfo = document.getElementById('additionalInfo')?.value || '';
-            const experience = document.querySelector('input[name="experience"]:checked')?.value;
-            const groqApi = document.getElementById('groq-api')?.value || '';
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const jobDescription = document.getElementById('jobDescription')?.value || '';
+                const additionalInfo = document.getElementById('additionalInfo')?.value || '';
+                const experience = document.querySelector('input[name="experience"]:checked')?.value;
+                const groqApi = document.getElementById('groq-api')?.value || '';
 
-            if (!extractedText || !jobDescription || !experience || !groqApi) {
-                updateStatus('Please fill in all required fields.', 'red');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('job_description', jobDescription);
-            formData.append('additional_information', additionalInfo);
-            formData.append('experience', experience);
-            formData.append('extractedText', extractedText);
-            formData.append('api', groqApi);
-
-            showLoader();
-            updateStatus('Analyzing resume...', 'blue');
-
-            fetch('/api/analyze', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                if (!extractedText || !jobDescription || !experience || !groqApi) {
+                    updateStatus('Please fill in all required fields.', 'red');
+                    return;
                 }
-                return response.json();
-            })
-            .then(data => {
-                hideLoader();
-                if (data.success) {
-                    window.location.href = `/result.html?success=true&extractedText=${encodeURIComponent(data.extractedText)}&apiResponse=${encodeURIComponent(JSON.stringify(data.apiResponse))}&specialChars=${encodeURIComponent(data.specialChars)}`;
-                } else {
-                    updateStatus(data.message || 'Failed to analyze resume. Please try again.', 'red');
+
+                showLoader();
+                updateStatus('Analyzing resume...', 'blue');
+
+                try {
+                    const response = await axios.post('https://resume-test-api.vercel.app/submit', {
+                        job_description: jobDescription,
+                        additional_information: additionalInfo,
+                        experience: experience,
+                        extractedText: extractedText,
+                        api: groqApi
+                    });
+
+                    if (response.data.success) {
+                        const specialChars = detectSpecialCharacters(extractedText);
+                        window.location.href = `/result.html?success=true&extractedText=${encodeURIComponent(extractedText)}&apiResponse=${encodeURIComponent(JSON.stringify(response.data))}&specialChars=${encodeURIComponent(specialChars)}`;
+                    } else {
+                        updateStatus(response.data.message || 'Failed to analyze resume. Please try again.', 'red');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    updateStatus('An error occurred. Please try again.', 'red');
+                } finally {
+                    hideLoader();
                 }
-            })
-            .catch(error => {
-                hideLoader();
-                updateStatus('An error occurred. Please try again.', 'red');
-                console.error('Error:', error);
             });
-        });
-    }
+        }
+
         function showNextSections() {
             resumeUploadSection.classList.add('hidden');
             jobDetailsSection.classList.remove('hidden');
@@ -651,42 +654,46 @@ display: none;
         function hideLoader() {
             loader.classList.add('hidden');
         }
+
+        function detectSpecialCharacters(text) {
+            const specialChars = text.match(/[^a-zA-Z0-9\s]/g);
+            return specialChars ? [...new Set(specialChars)].join('') : '';
+        }
     });
 
-function openSmallWindow() {
-    const width = 1000;
-    const height = 600;
-    const left = (window.screen.width - width) / 2;
-    const top = (window.screen.height - height) / 2;
+    function openSmallWindow() {
+        const width = 1000;
+        const height = 600;
+        const left = (window.screen.width - width) / 2;
+        const top = (window.screen.height - height) / 2;
 
-    window.open(
-        'https://console.groq.com/keys',
-        'smallWindow',
-        `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
-    );
-}
+        window.open(
+            'https://console.groq.com/keys',
+            'smallWindow',
+            `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
+        );
+    }
 
-function showModal() {
-    const modal = document.getElementById('myModal');
-    modal.classList.remove('hide');
-    modal.classList.add('show');
-    modal.style.display = 'flex';
-}
+    function showModal() {
+        const modal = document.getElementById('myModal');
+        modal.classList.remove('hide');
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+    }
 
-function closeModal() {
-    const modal = document.getElementById('myModal');
-    modal.classList.remove('show');
-    modal.classList.add('hide');
-    setTimeout(() => {
-        modal.style.display = 'none';
-    }, 300);
-}
+    function closeModal() {
+        const modal = document.getElementById('myModal');
+        modal.classList.remove('show');
+        modal.classList.add('hide');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    }
 
-// Ensure modal is hidden initially
-document.getElementById('myModal').style.display = 'none';
-document.getElementById('myModal').classList.add('hide');
+    // Ensure modal is hidden initially
+    document.getElementById('myModal').style.display = 'none';
+    document.getElementById('myModal').classList.add('hide');
     </script>
-
 <body class="bg-gray-100">
     <div id="loader" class="hidden">
         
@@ -712,100 +719,98 @@ document.getElementById('myModal').classList.add('hide');
             </h1>
         </header>
         <form id="resumeForm">
-        <main id="mainContent" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <section id="resumeUploadSection" class="col-span-2">
-                <div class="card h-full flex flex-col">
-                    <h2 class="text-2xl font-semibold mb-4 text-primary">
-                        <i class="fas fa-file-upload mr-2"></i>Upload Your Resume
-                    </h2>
-                    <div class="upload-area flex-grow" id="dropArea">
-                        <input type="file" id="file-upload" name="file-upload" accept=".pdf" class="sr-only" required>
-                        <label for="file-upload" class="cursor-pointer">
-                            <i class="fas fa-cloud-upload-alt text-5xl text-primary mb-4"></i>
-                            <p class="text-lg font-medium">Click to Upload</p>
-                            <p class="text-sm text-gray-600 mt-2">Supports PDF up to 10MB</p>
-                            <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
+            <main id="mainContent" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <section id="resumeUploadSection" class="col-span-2">
+                    <div class="card h-full flex flex-col">
+                        <h2 class="text-2xl font-semibold mb-4 text-primary">
+                            <i class="fas fa-file-upload mr-2"></i>Upload Your Resume
+                        </h2>
+                        <div class="upload-area flex-grow" id="dropArea">
+                            <input type="file" id="file-upload" name="file-upload" accept=".pdf" class="sr-only" required>
+                            <label for="file-upload" class="cursor-pointer">
+                                <i class="fas fa-cloud-upload-alt text-5xl text-primary mb-4"></i>
+                                <p class="text-lg font-medium">Click to Upload</p>
+                                <p class="text-sm text-gray-600 mt-2">Supports PDF up to 10MB</p>
+                                <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
+                            </label>
+                        </div>
+                        <div id="status" class="mt-4 text-center"></div>
+                        <div class="progress-bar-container mt-4" id="progressBarContainer">
+                            <div class="progress-bar" id="progressBar"></div>
+                        </div>
+                        <p id="fileInfo" class="success-message hidden mt-2"></p>
+                        <p id="resumeError" class="error-message hidden mt-2"></p>
+                        <button id="nextButton" class="btn-primary mt-4" disabled>
+                            <i class="fas fa-arrow-right"></i>
+                            <span>Next</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section id="jobDetailsSection" class="hidden">
+                    <div class="card">
+                        <h2 class="text-2xl font-semibold mb-4 text-primary">
+                            <i class="fas fa-briefcase mr-2"></i>Job Details
+                        </h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="jobDescription" class="block text-sm font-medium mb-1">Job Description</label>
+                                <textarea id="jobDescription" name="jobDescription" rows="5" class="input-field"
+                                    placeholder="Paste the job description here..." required></textarea>
+                            </div>
+                            <div>
+                                <label for="additionalInfo" class="block text-sm font-medium mb-1">Additional Information</label>
+                                <textarea id="additionalInfo" name="additionalInfo" rows="3" class="input-field"
+                                    placeholder="Add other relevant information..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="experienceLevelSection" class="hidden">
+                    <div class="card">
+                        <h2 class="text-2xl font-semibold mb-4 text-primary">
+                            <i class="fas fa-user-tie mr-2"></i>Experience Level
+                        </h2>
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center space-x-2">
+                                    <input type="radio" name="experience" value="Experience" required class="form-radio text-primary">
+                                    <span>Experienced</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="radio" name="experience" value="NoExperience" required class="form-radio text-primary">
+                                    <span>No Experience</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="apiKeySection" class="hidden">
+                    <div class="card">
+                        <label for="groq-api" class="block text-sm font-medium mb-1">
+                            Enter the API of Groq (it's Free & We are not Saving it)
+                            <button onclick="openSmallWindow()" class="text-primary underline font-bold">Click Here!</button>
                         </label>
-                    </div>
-                    <div id="status" class="mt-4 text-center"></div>
-                    <div class="progress-bar-container mt-4" id="progressBarContainer">
-                        <div class="progress-bar" id="progressBar"></div>
-                    </div>
-                    <p id="fileInfo" class="success-message hidden mt-2"></p>
-                    <p id="resumeError" class="error-message hidden mt-2"></p>
-                    <button id="nextButton" class="btn-primary mt-4" disabled>
-                        <i class="fas fa-arrow-right"></i>
-                        <span>Next</span>
-                    </button>
-                </div>
-            </section>
-
-            <section id="jobDetailsSection" class="hidden">
-                <div class="card">
-                    <h2 class="text-2xl font-semibold mb-4 text-primary">
-                        <i class="fas fa-briefcase mr-2"></i>Job Details
-                    </h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label for="jobDescription" class="block text-sm font-medium mb-1">Job Description</label>
-                            <textarea id="jobDescription" name="jobDescription" rows="5" class="input-field"
-                                placeholder="Paste the job description here..." required></textarea>
-                        </div>
-                        <div>
-                            <label for="additionalInfo" class="block text-sm font-medium mb-1">Additional Information</label>
-                            <textarea id="additionalInfo" name="additionalInfo" rows="3" class="input-field"
-                                placeholder="Add other relevant information..."></textarea>
+                        <div class="input-wrapper">
+                            <input type="text" id="groq-api" name="groq-api" class="input-field" placeholder="Enter your Groq API key" required>
+                            <div class="info-button" onclick="showModal()">Why?</div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <section id="experienceLevelSection" class="hidden">
-                <div class="card">
-                    <h2 class="text-2xl font-semibold mb-4 text-primary">
-                        <i class="fas fa-user-tie mr-2"></i>Experience Level
-                    </h2>
-                    <div class="space-y-2">
-                        <div class="flex items-center space-x-4">
-                            <label class="flex items-center space-x-2">
-                                <input type="radio" name="experience" value="Experience" required class="form-radio text-primary">
-                                <span>Experienced</span>
-                            </label>
-                            <label class="flex items-center space-x-2">
-                                <input type="radio" name="experience" value="NoExperience" required class="form-radio text-primary">
-                                <span>No Experience</span>
-                            </label>
-                        </div>
+                <section id="submitSection" class="hidden col-span-2">
+                    <div class="card">
+                        <button id="analyzeButton" type="submit" class="btn-primary w-full">
+                            <i class="fas fa-search-plus"></i>
+                            <span>Analyze Resume</span>
+                        </button>
                     </div>
-                </div>
-            </section>
-
-            <section id="apiKeySection" class="hidden">
-                <div class="card">
-                    <label for="groq-api" class="block text-sm font-medium mb-1">
-                        Enter the API of Groq (it's Free & We are not Saving it)
-                        <button onclick="openSmallWindow()" class="text-primary underline font-bold">Click Here!</button>
-                    </label>
-                    <div class="input-wrapper">
-                        <input type="text" id="groq-api" name="groq-api" class="input-field" placeholder="Enter your Groq API key" required>
-                        <div class="info-button" onclick="showModal()">Why?</div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="submitSection" class="hidden col-span-2">
-                <div class="card">
-                    <button id="analyzeButton" type="submit" class="btn-primary w-full">
-                        <i class="fas fa-search-plus"></i>
-                        <span>Analyze Resume</span>
-                    </button>
-                </div>
-            </section>
-        </main>
-    </form>
+                </section>
+            </main>
+        </form>
     </div>
-
-
    
 </body>
 
