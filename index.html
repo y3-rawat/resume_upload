@@ -630,13 +630,14 @@ display: none;
             return response.json();
         })
         .then(data => {
-            hideLoader();
-            if (data.success) {
-                window.location.href = `/result.html?success=true&extractedText=${encodeURIComponent(data.extractedText)}&apiResponse=${encodeURIComponent(JSON.stringify(data.apiResponse))}`;
-            } else {
-                updateStatus('Failed to analyze resume. Please try again.', 'red');
-            }
-        })
+                hideLoader();
+                if (data.success) {
+                    const redirectUrl = `/result.html?success=true&extractedText=${encodeURIComponent(data.extractedText)}&apiResponse=${encodeURIComponent(JSON.stringify(data.apiResponse))}&specialChars=${encodeURIComponent(data.specialChars)}`;
+                    window.location.href = redirectUrl;
+                } else {
+                    updateStatus('Failed to analyze resume. Please try again.', 'red');
+                }
+            })
         .catch(error => {
             hideLoader();
             updateStatus('An error occurred. Please try again.', 'red');

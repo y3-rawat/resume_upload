@@ -7,6 +7,11 @@ const safeEncodeURIComponent = (str) => {
   return encodeURIComponent(str).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16));
 };
 
+const detectSpecialCharacters = (text) => {
+  const specialChars = text.match(/[^a-zA-Z0-9\s]/g);
+  return specialChars ? [...new Set(specialChars)].join('') : '';
+};
+
 module.exports = async (req, res) => {
   // Enable CORS
   await new Promise((resolve, reject) => {
@@ -52,11 +57,8 @@ module.exports = async (req, res) => {
         try {
           const pdfData = await pdfParse(fileBuffer);
           const extractedText = pdfData.text || '';
+          const specialChars = detectSpecialCharacters(extractedText);
 
-          res.status(200).json({ success: true, extractedText: extractedText });
-          
-          // Here, you would typically send the extracted text along with other form data to your analysis API
-          // For this example, we'll just send back the extracted text
           const externalApiUrl = `https://resume-test-api.vercel.app/submit`;
           const apiResponse = await axios.post(externalApiUrl, {
             fileName: fileName,
@@ -70,7 +72,9 @@ module.exports = async (req, res) => {
 
           const safeExtractedText = safeEncodeURIComponent(extractedText);
           const safeApiResponse = safeEncodeURIComponent(JSON.stringify(apiResponse.data));
-          const redirectUrl = `/result.html?success=true&extractedText=${safeExtractedText}&apiResponse=${safeApiResponse}`;
+          const safeSpecialChars = safeEncodeURIComponent(specialChars);
+          
+          const redirectUrl = `/result.html?success=true&extractedText=${safeExtractedText}&apiResponse=${safeApiResponse}&specialChars=${safeSpecialChars}`;
 
           res.writeHead(302, { Location: redirectUrl });
           res.end();

@@ -1819,6 +1819,22 @@ function displayError(message) {
 
     // Stop confetti animation after 4 seconds
     setTimeout(stopConfetti, 4000);
+
+    document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const specialChars = urlParams.get('specialChars');
+    
+    if (specialChars && specialChars.length > 0) {
+        const warningDiv = document.createElement('div');
+        warningDiv.className = 'alert alert-warning';
+        warningDiv.innerHTML = `
+            <strong>Warning:</strong> Your resume contains the following special characters: 
+            <span class="special-chars">${specialChars}</span>. 
+            These might cause issues with some ATS systems.
+        `;
+        document.querySelector('#results-container').prepend(warningDiv);
+    }
+});
 </script>
 
 
