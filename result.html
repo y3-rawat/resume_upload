@@ -1822,17 +1822,30 @@ function displayError(message) {
 
     document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
-    const specialChars = urlParams.get('specialChars');
+    const success = urlParams.get('success');
+    const errorDetails = urlParams.get('errorDetails');
     
-    if (specialChars && specialChars.length > 0) {
-        const warningDiv = document.createElement('div');
-        warningDiv.className = 'alert alert-warning';
-        warningDiv.innerHTML = `
-            <strong>Warning:</strong> Your resume contains the following special characters: 
-            <span class="special-chars">${specialChars}</span>. 
-            These might cause issues with some ATS systems.
-        `;
-        document.querySelector('#results-container').prepend(warningDiv);
+    if (success === 'false' && errorDetails) {
+        try {
+            const errorObj = JSON.parse(decodeURIComponent(errorDetails));
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger';
+            errorDiv.innerHTML = `
+                <h4>Error processing resume</h4>
+                <p><strong>Message:</strong> ${errorObj.message}</p>
+                ${errorObj.response ? `
+                    <p><strong>Status:</strong> ${errorObj.response.status}</p>
+                    <p><strong>Response:</strong> ${JSON.stringify(errorObj.response.data)}</p>
+                ` : ''}
+                <details>
+                    <summary>Error Stack</summary>
+                    <pre>${errorObj.stack}</pre>
+                </details>
+            `;
+            document.querySelector('#results-container').prepend(errorDiv);
+        } catch (e) {
+            console.error("Error parsing error details:", e);
+        }
     }
 });
 </script>

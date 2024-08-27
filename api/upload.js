@@ -50,15 +50,21 @@ module.exports = async (req, res) => {
 
       busboy.on('finish', async () => {
         if (!fileBuffer) {
+          console.error("No file uploaded");
           res.status(400).json({ success: false, message: 'No file uploaded' });
           return resolve();
         }
 
         try {
+          console.log("Starting PDF parsing");
           const pdfData = await pdfParse(fileBuffer);
           const extractedText = pdfData.text || '';
-          const specialChars = detectSpecialCharacters(extractedText);
+          console.log("PDF parsing completed. Extracted text length:", extractedText.length);
 
+          const specialChars = detectSpecialCharacters(extractedText);
+          console.log("Special characters detected:", specialChars);
+
+          console.log("Sending request to external API");
           const externalApiUrl = `https://resume-test-api.vercel.app/submit`;
           const apiResponse = await axios.post(externalApiUrl, {
             fileName: fileName,
@@ -69,6 +75,7 @@ module.exports = async (req, res) => {
             extractedText: extractedText,
             api: formData.api
           });
+          console.log("External API response received");
 
           const safeExtractedText = safeEncodeURIComponent(extractedText);
           const safeApiResponse = safeEncodeURIComponent(JSON.stringify(apiResponse.data));
@@ -80,8 +87,16 @@ module.exports = async (req, res) => {
           res.end();
         } catch (error) {
           console.error("Error processing request:", error);
-          const safeErrorMessage = safeEncodeURIComponent(error.message);
-          const redirectUrl = `/result.html?success=false&errorMessage=${safeErrorMessage}`;
+          const errorDetails = {
+            message: error.message,
+            stack: error.stack,
+            response: error.response ? {
+              status: error.response.status,
+              data: error.response.data
+            } : null
+          };
+          const safeErrorDetails = safeEncodeURIComponent(JSON.stringify(errorDetails));
+          const redirectUrl = `/result.html?success=false&errorDetails=${safeErrorDetails}`;
           res.writeHead(302, { Location: redirectUrl });
           res.end();
         }
@@ -90,8 +105,13 @@ module.exports = async (req, res) => {
       });
 
       busboy.on('error', (error) => {
-        console.error("Busboy error:", error.message);
-        const redirectUrl = `/result.html?success=false&errorMessage=${encodeURIComponent(error.message)}`;
+        console.error("Busboy error:", error);
+        const errorDetails = {
+          message: error.message,
+          stack: error.stack
+        };
+        const safeErrorDetails = safeEncodeURIComponent(JSON.stringify(errorDetails));
+        const redirectUrl = `/result.html?success=false&errorDetails=${safeErrorDetails}`;
         res.writeHead(302, { Location: redirectUrl });
         res.end();
         resolve();
