@@ -776,40 +776,7 @@ display: none;
         </main>
     </div>
 
-    <script>
-        function openSmallWindow() {
-            const width = 1000;
-            const height = 600;
-            const left = (window.screen.width - width) / 2;
-            const top = (window.screen.height - height) / 2;
-
-            window.open(
-                'https://console.groq.com/keys',
-                'smallWindow',
-                `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
-            );
-        }
-
-        function showModal() {
-            const modal = document.getElementById('myModal');
-            modal.classList.remove('hide');
-            modal.classList.add('show');
-            modal.style.display = 'flex';
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('myModal');
-            modal.classList.remove('show');
-            modal.classList.add('hide');
-            setTimeout(() => {
-                modal.style.display = 'none';
-            }, 300); // Match with the CSS transition time
-        }
-
-        // Ensure modal is hidden initially
-        document.getElementById('myModal').style.display = 'none';
-        document.getElementById('myModal').classList.add('hide');
-    </script>
+   
 </body>
 
 </html>
