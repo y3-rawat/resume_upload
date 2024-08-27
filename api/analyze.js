@@ -1,6 +1,22 @@
 const axios = require('axios');
+const cors = require('cors');
+
+// Helper function to run middleware
+const runMiddleware = (req, res, fn) => {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result) => {
+      if (result instanceof Error) {
+        return reject(result);
+      }
+      return resolve(result);
+    });
+  });
+};
 
 module.exports = async (req, res) => {
+  // Run the CORS middleware
+  await runMiddleware(req, res, cors());
+
   if (req.method === 'POST') {
     try {
       const { job_description, additional_information, experience, extractedText, api } = req.body;
