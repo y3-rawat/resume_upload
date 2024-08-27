@@ -582,13 +582,14 @@ display: none;
             showLoader();
         });
 
-         form.addEventListener('submit', function (e) {
+        if (form) {
+        form.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const jobDescription = document.getElementById('jobDescription').value;
-            const additionalInfo = document.getElementById('additionalInfo').value;
-            const experience = document.querySelector('input[name="experience"]:checked');
-            const groqApi = document.getElementById('groq-api').value;
+            const jobDescription = document.getElementById('jobDescription')?.value || '';
+            const additionalInfo = document.getElementById('additionalInfo')?.value || '';
+            const experience = document.querySelector('input[name="experience"]:checked')?.value;
+            const groqApi = document.getElementById('groq-api')?.value || '';
 
             if (!extractedText || !jobDescription || !experience || !groqApi) {
                 updateStatus('Please fill in all required fields.', 'red');
@@ -598,7 +599,7 @@ display: none;
             const formData = new FormData();
             formData.append('job_description', jobDescription);
             formData.append('additional_information', additionalInfo);
-            formData.append('experience', experience.value);
+            formData.append('experience', experience);
             formData.append('extractedText', extractedText);
             formData.append('api', groqApi);
 
@@ -629,6 +630,7 @@ display: none;
                 console.error('Error:', error);
             });
         });
+    }
         function showNextSections() {
             resumeUploadSection.classList.add('hidden');
             jobDetailsSection.classList.remove('hidden');
