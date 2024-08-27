@@ -512,152 +512,192 @@ display: none;
 </style>
 <script>
    document.addEventListener('DOMContentLoaded', function () {
-            const fileInput = document.getElementById('file-upload');
-            const fileNameDisplay = document.getElementById('fileName');
-            const resumeError = document.getElementById('resumeError');
-            const fileInfo = document.getElementById('fileInfo');
-            const progressBar = document.getElementById('progressBar');
-            const statusDiv = document.getElementById('status');
-            const loader = document.getElementById('loader');
-            const nextButton = document.getElementById('nextButton');
-            const analyzeButton = document.getElementById('analyzeButton');
+    const fileInput = document.getElementById('file-upload');
+    const fileNameDisplay = document.getElementById('fileName');
+    const resumeError = document.getElementById('resumeError');
+    const fileInfo = document.getElementById('fileInfo');
+    const progressBar = document.getElementById('progressBar');
+    const statusDiv = document.getElementById('status');
+    const loader = document.getElementById('loader');
+    const nextButton = document.getElementById('nextButton');
+    const analyzeButton = document.getElementById('analyzeButton');
+    const form = document.getElementById('resumeForm');
 
-            const resumeUploadSection = document.getElementById('resumeUploadSection');
-            const jobDetailsSection = document.getElementById('jobDetailsSection');
-            const experienceLevelSection = document.getElementById('experienceLevelSection');
-            const apiKeySection = document.getElementById('apiKeySection');
-            const submitSection = document.getElementById('submitSection');
+    const resumeUploadSection = document.getElementById('resumeUploadSection');
+    const jobDetailsSection = document.getElementById('jobDetailsSection');
+    const experienceLevelSection = document.getElementById('experienceLevelSection');
+    const apiKeySection = document.getElementById('apiKeySection');
+    const submitSection = document.getElementById('submitSection');
 
-            let extractedText = '';
+    let extractedText = '';
 
-            fileInput.addEventListener('change', function () {
-                if (fileInput.files.length > 0) {
-                    const file = fileInput.files[0];
-                    fileNameDisplay.textContent = `Selected file: ${file.name}`;
-                    nextButton.disabled = false;
-                } else {
-                    fileNameDisplay.textContent = '';
-                    nextButton.disabled = true;
-                }
-            });
+    fileInput.addEventListener('change', function () {
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            fileNameDisplay.textContent = `Selected file: ${file.name}`;
+            nextButton.disabled = false;
+        } else {
+            fileNameDisplay.textContent = '';
+            nextButton.disabled = true;
+        }
+    });
 
-            nextButton.addEventListener('click', function () {
-                if (fileInput.files.length === 0) {
-                    updateStatus('Please select a file to upload.', 'red');
-                    return;
-                }
+    nextButton.addEventListener('click', function () {
+        if (fileInput.files.length === 0) {
+            updateStatus('Please select a file to upload.', 'red');
+            return;
+        }
 
-                let file = fileInput.files[0];
-                if (file.type !== 'application/pdf') {
-                    updateStatus('Please select a PDF file.', 'red');
-                    return;
-                }
+        let file = fileInput.files[0];
+        if (file.type !== 'application/pdf') {
+            updateStatus('Please select a PDF file.', 'red');
+            return;
+        }
 
-                let formData = new FormData();
-                formData.append('file-upload', file);
+        let formData = new FormData();
+        formData.append('file-upload', file);
 
-                let xhr = new XMLHttpRequest();
+        let xhr = new XMLHttpRequest();
 
-                xhr.upload.addEventListener('progress', function (e) {
-                    if (e.lengthComputable) {
-                        let percentComplete = (e.loaded / e.total) * 100;
-                        progressBar.style.width = percentComplete + '%';
-                        updateStatus(`Uploading and extracting text: ${percentComplete.toFixed(2)}%`, 'blue');
-                    }
-                });
-
-                xhr.addEventListener('load', function () {
-                    if (xhr.status === 200) {
-                        try {
-                            let response = JSON.parse(xhr.responseText);
-                            extractedText = response.extractedText;
-                            updateStatus('Text extracted successfully!', 'green');
-                            showNextSections();
-                        } catch (error) {
-                            updateStatus('Failed to process the resume. Please try again.', 'red');
-                        }
-                    } else {
-                        updateStatus('Failed to process the resume. Please try again.', 'red');
-                    }
-                    progressBar.style.width = '0%';
-                    hideLoader();
-                });
-
-                xhr.addEventListener('error', function () {
-                    updateStatus('An error occurred while processing the file.', 'red');
-                    progressBar.style.width = '0%';
-                    hideLoader();
-                });
-
-                updateStatus('Starting upload and text extraction...', 'blue');
-                showLoader();
-                xhr.open('POST', '/api/upload', true);
-                xhr.send(formData);
-            });
-
-            analyzeButton.addEventListener('click', function (e) {
-                e.preventDefault();
-                // Perform final submission logic here
-                // You can access the extractedText variable here
-                console.log('Extracted Text:', extractedText);
-                // Add your submission logic...
-            });
-
-            function showNextSections() {
-                resumeUploadSection.classList.add('hidden');
-                jobDetailsSection.classList.remove('hidden');
-                experienceLevelSection.classList.remove('hidden');
-                apiKeySection.classList.remove('hidden');
-                submitSection.classList.remove('hidden');
-            }
-
-            function updateStatus(message, color) {
-                statusDiv.textContent = message;
-                statusDiv.style.color = color;
-            }
-
-            function showLoader() {
-                loader.classList.remove('hidden');
-            }
-
-            function hideLoader() {
-                loader.classList.add('hidden');
+        xhr.upload.addEventListener('progress', function (e) {
+            if (e.lengthComputable) {
+                let percentComplete = (e.loaded / e.total) * 100;
+                progressBar.style.width = percentComplete + '%';
+                updateStatus(`Uploading and extracting text: ${percentComplete.toFixed(2)}%`, 'blue');
             }
         });
 
+        xhr.addEventListener('load', function () {
+            if (xhr.status === 200) {
+                try {
+                    let response = JSON.parse(xhr.responseText);
+                    extractedText = response.extractedText;
+                    updateStatus('Text extracted successfully!', 'green');
+                    showNextSections();
+                } catch (error) {
+                    updateStatus('Failed to process the resume. Please try again.', 'red');
+                }
+            } else {
+                updateStatus('Failed to process the resume. Please try again.', 'red');
+            }
+            progressBar.style.width = '0%';
+            hideLoader();
+        });
 
-        function openSmallWindow() {
-            const width = 1000;
-            const height = 600;
-            const left = (window.screen.width - width) / 2;
-            const top = (window.screen.height - height) / 2;
+        xhr.addEventListener('error', function () {
+            updateStatus('An error occurred while processing the file.', 'red');
+            progressBar.style.width = '0%';
+            hideLoader();
+        });
 
-            window.open(
-                'https://console.groq.com/keys',
-                'smallWindow',
-                `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
-            );
+        updateStatus('Starting upload and text extraction...', 'blue');
+        showLoader();
+        xhr.open('POST', '/api/upload', true);
+        xhr.send(formData);
+    });
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        
+        const jobDescription = document.getElementById('jobDescription').value;
+        const additionalInfo = document.getElementById('additionalInfo').value;
+        const experience = document.querySelector('input[name="experience"]:checked').value;
+        const groqApi = document.getElementById('groq-api').value;
+
+        if (!extractedText || !jobDescription || !experience || !groqApi) {
+            updateStatus('Please fill in all required fields.', 'red');
+            return;
         }
 
-        function showModal() {
-            const modal = document.getElementById('myModal');
-            modal.classList.remove('hide');
-            modal.classList.add('show');
-            modal.style.display = 'flex';
-        }
+        const formData = new FormData();
+        formData.append('job_description', jobDescription);
+        formData.append('additional_information', additionalInfo);
+        formData.append('experience', experience);
+        formData.append('extractedText', extractedText);
+        formData.append('api', groqApi);
 
-        function closeModal() {
-            const modal = document.getElementById('myModal');
-            modal.classList.remove('show');
-            modal.classList.add('hide');
-            setTimeout(() => {
-                modal.style.display = 'none';
-            }, 300);
-        }
+        showLoader();
+        updateStatus('Analyzing resume...', 'blue');
 
-        // Ensure modal is hidden initially
-        document.getElementById('myModal').style.display = 'none';
-        document.getElementById('myModal').classList.add('hide');
+        fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            hideLoader();
+            if (data.success) {
+                window.location.href = `/result.html?success=true&extractedText=${encodeURIComponent(data.extractedText)}&apiResponse=${encodeURIComponent(JSON.stringify(data.apiResponse))}`;
+            } else {
+                updateStatus('Failed to analyze resume. Please try again.', 'red');
+            }
+        })
+        .catch(error => {
+            hideLoader();
+            updateStatus('An error occurred. Please try again.', 'red');
+            console.error('Error:', error);
+        });
+    });
+
+    function showNextSections() {
+        resumeUploadSection.classList.add('hidden');
+        jobDetailsSection.classList.remove('hidden');
+        experienceLevelSection.classList.remove('hidden');
+        apiKeySection.classList.remove('hidden');
+        submitSection.classList.remove('hidden');
+    }
+
+    function updateStatus(message, color) {
+        statusDiv.textContent = message;
+        statusDiv.style.color = color;
+    }
+
+    function showLoader() {
+        loader.classList.remove('hidden');
+    }
+
+    function hideLoader() {
+        loader.classList.add('hidden');
+    }
+});
+
+function openSmallWindow() {
+    const width = 1000;
+    const height = 600;
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+
+    window.open(
+        'https://console.groq.com/keys',
+        'smallWindow',
+        `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
+    );
+}
+
+function showModal() {
+    const modal = document.getElementById('myModal');
+    modal.classList.remove('hide');
+    modal.classList.add('show');
+    modal.style.display = 'flex';
+}
+
+function closeModal() {
+    const modal = document.getElementById('myModal');
+    modal.classList.remove('show');
+    modal.classList.add('hide');
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
+}
+
+// Ensure modal is hidden initially
+document.getElementById('myModal').style.display = 'none';
+document.getElementById('myModal').classList.add('hide');
     </script>
 
 <body class="bg-gray-100">
@@ -684,7 +724,7 @@ display: none;
                 <img src="https://res.cloudinary.com/dg9wkitg0/image/upload/v1724043178/r1mp5odnj5z6tnhgfj9e.svg" alt="ATS Resume Analyzer Pro">
             </h1>
         </header>
-
+        <form id="resumeForm">
         <main id="mainContent" class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <section id="resumeUploadSection" class="col-span-2">
                 <div class="card h-full flex flex-col">
@@ -700,6 +740,7 @@ display: none;
                             <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
                         </label>
                     </div>
+                    <div id="status" class="mt-4 text-center"></div>
                     <div class="progress-bar-container mt-4" id="progressBarContainer">
                         <div class="progress-bar" id="progressBar"></div>
                     </div>
@@ -774,7 +815,9 @@ display: none;
                 </div>
             </section>
         </main>
+    </form>
     </div>
+
 
    
 </body>

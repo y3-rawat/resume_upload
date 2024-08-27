@@ -52,6 +52,8 @@ module.exports = async (req, res) => {
         try {
           const pdfData = await pdfParse(fileBuffer);
           const extractedText = pdfData.text || '';
+
+          res.status(200).json({ success: true, extractedText: extractedText });
           
           // Here, you would typically send the extracted text along with other form data to your analysis API
           // For this example, we'll just send back the extracted text
