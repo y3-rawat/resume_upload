@@ -5,9 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ATS Resume Analyzer Pro</title>
+    <title>ATS Resume Analyzer Pro</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link href="style.css" rel="stylesheet">
+    
 </head>
 
 
@@ -515,44 +516,45 @@ display: none;
             const fileNameDisplay = document.getElementById('fileName');
             const resumeError = document.getElementById('resumeError');
             const fileInfo = document.getElementById('fileInfo');
-            const form = document.getElementById('resumeForm');
             const progressBar = document.getElementById('progressBar');
             const statusDiv = document.getElementById('status');
             const loader = document.getElementById('loader');
+            const nextButton = document.getElementById('nextButton');
             const analyzeButton = document.getElementById('analyzeButton');
+
+            const resumeUploadSection = document.getElementById('resumeUploadSection');
+            const jobDetailsSection = document.getElementById('jobDetailsSection');
+            const experienceLevelSection = document.getElementById('experienceLevelSection');
+            const apiKeySection = document.getElementById('apiKeySection');
+            const submitSection = document.getElementById('submitSection');
+
+            let extractedText = '';
+
             fileInput.addEventListener('change', function () {
                 if (fileInput.files.length > 0) {
                     const file = fileInput.files[0];
                     fileNameDisplay.textContent = `Selected file: ${file.name}`;
-                    analyzeButton.disabled = false;
+                    nextButton.disabled = false;
                 } else {
                     fileNameDisplay.textContent = '';
-                    analyzeButton.disabled = true;
+                    nextButton.disabled = true;
                 }
             });
 
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-
-                let file = fileInput.files[0];
-                if (!file) {
+            nextButton.addEventListener('click', function () {
+                if (fileInput.files.length === 0) {
                     updateStatus('Please select a file to upload.', 'red');
                     return;
                 }
 
+                let file = fileInput.files[0];
                 if (file.type !== 'application/pdf') {
                     updateStatus('Please select a PDF file.', 'red');
                     return;
                 }
 
-                let selectedExperience = document.querySelector('input[name="experience"]:checked');
-                if (!selectedExperience) {
-                    updateStatus('Please select your experience level.', 'red');
-                    return;
-                }
-
-                let formData = new FormData(form);
-                formData.append('pdf', file);
+                let formData = new FormData();
+                formData.append('file-upload', file);
 
                 let xhr = new XMLHttpRequest();
 
@@ -565,8 +567,15 @@ display: none;
                 });
 
                 xhr.addEventListener('load', function () {
-                    if (xhr.status === 302) {
-                        window.location.href = xhr.getResponseHeader('Location');
+                    if (xhr.status === 200) {
+                        try {
+                            let response = JSON.parse(xhr.responseText);
+                            extractedText = response.extractedText;
+                            updateStatus('Text extracted successfully!', 'green');
+                            showNextSections();
+                        } catch (error) {
+                            updateStatus('Failed to process the resume. Please try again.', 'red');
+                        }
                     } else {
                         updateStatus('Failed to process the resume. Please try again.', 'red');
                     }
@@ -586,6 +595,22 @@ display: none;
                 xhr.send(formData);
             });
 
+            analyzeButton.addEventListener('click', function (e) {
+                e.preventDefault();
+                // Perform final submission logic here
+                // You can access the extractedText variable here
+                console.log('Extracted Text:', extractedText);
+                // Add your submission logic...
+            });
+
+            function showNextSections() {
+                resumeUploadSection.classList.add('hidden');
+                jobDetailsSection.classList.remove('hidden');
+                experienceLevelSection.classList.remove('hidden');
+                apiKeySection.classList.remove('hidden');
+                submitSection.classList.remove('hidden');
+            }
+
             function updateStatus(message, color) {
                 statusDiv.textContent = message;
                 statusDiv.style.color = color;
@@ -599,6 +624,7 @@ display: none;
                 loader.classList.add('hidden');
             }
         });
+
 
         function openSmallWindow() {
             const width = 1000;
@@ -653,75 +679,15 @@ display: none;
         </div>
     </div>
     <div class="container mx-auto px-4 py-8">
-       
-
         <header class="text-center mb-8">
-
-            <!-- <p class="text-gray-600 mt-2">Optimize your resume for Applicant Tracking Systems</p> -->
+            <h1 class="text-4xl font-bold text-gray-800">
+                <img src="https://res.cloudinary.com/dg9wkitg0/image/upload/v1724043178/r1mp5odnj5z6tnhgfj9e.svg" alt="ATS Resume Analyzer Pro">
+            </h1>
         </header>
-        
 
-        <main class="grid grid-cols-1 md:grid-cols-2 gap-8 o">
-
-            <section class="order-2 md:order-1 space-y-6">
-                <h1 class="text-4xl font-bold text-gray-800">
-                    <img src="https://res.cloudinary.com/dg9wkitg0/image/upload/v1724043178/r1mp5odnj5z6tnhgfj9e.svg"
-                        alt="">
-                </h1>
-                <form id="resumeForm">
-
-                    <div class="card">
-                        <h2 class="text-2xl font-semibold mb-4 text-primary">
-                            <i class="fas fa-briefcase mr-2"></i>Job Details
-                        </h2>
-                        <div class="space-y-4">
-                            <div>
-                                <label for="jobDescription" class="block text-sm font-medium mb-1">Job
-                                    Description</label>
-                                <textarea id="jobDescription" name="jobDescription" rows="5" class="input-field"
-                                    placeholder="Paste the job description here..." required></textarea>
-
-                            </div>
-                            <div>
-                                <label for="additionalInfo" class="block text-sm font-medium mb-1">Additional
-                                    Information</label>
-                                <textarea id="additionalInfo" name="additionalInfo" rows="3" class="input-field"
-                                    placeholder="Add other relevant information..."></textarea>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div style="padding-top: 10px;"></div>
-
-
-                    <div class="card">
-                        <h2 class="text-2xl font-semibold mb-4 text-primary">
-                            <i class="fas fa-user-tie mr-2"></i>Experience Level
-                        </h2>
-                        <div class="space-y-2">
-                            <div class="flex items-center space-x-4">
-                                <label class="flex items-center space-x-2">
-                                    <input type="radio" name="experience" value="Experience" required
-                                        class="form-radio text-primary">
-                                    <span>Experienced</span>
-                                </label>
-                                <label class="flex items-center space-x-2">
-                                    <input type="radio" name="experience" value="NoExperience" required
-                                        class="form-radio text-primary">
-                                    <span>No Experience</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div id="status"></div>
-                    </div>
-            </section>
-
-            <section class="order-1 md:order-2">
-                <div style="margin-top: 30px;"></div>
+        <main id="mainContent" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <section id="resumeUploadSection" class="col-span-2">
                 <div class="card h-full flex flex-col">
-
                     <h2 class="text-2xl font-semibold mb-4 text-primary">
                         <i class="fas fa-file-upload mr-2"></i>Upload Your Resume
                     </h2>
@@ -729,103 +695,121 @@ display: none;
                         <input type="file" id="file-upload" name="file-upload" accept=".pdf" class="sr-only" required>
                         <label for="file-upload" class="cursor-pointer">
                             <i class="fas fa-cloud-upload-alt text-5xl text-primary mb-4"></i>
-                            <p class="text-lg font-medium"> Click to Upload</p>
+                            <p class="text-lg font-medium">Click to Upload</p>
                             <p class="text-sm text-gray-600 mt-2">Supports PDF up to 10MB</p>
                             <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
-
                         </label>
-
                     </div>
-
                     <div class="progress-bar-container mt-4" id="progressBarContainer">
                         <div class="progress-bar" id="progressBar"></div>
                     </div>
                     <p id="fileInfo" class="success-message hidden mt-2"></p>
                     <p id="resumeError" class="error-message hidden mt-2"></p>
-                    
+                    <button id="nextButton" class="btn-primary mt-4" disabled>
+                        <i class="fas fa-arrow-right"></i>
+                        <span>Next</span>
+                    </button>
                 </div>
-                <div style="margin: 1%;"></div>
-                
+            </section>
+
+            <section id="jobDetailsSection" class="hidden">
                 <div class="card">
-                    <label for="groq-api" style="font-size:14px;font-weight:500;">
-                        Enter the Api of Groq (it's Free & We are not Saving it)
-                        <button onclick="openSmallWindow()"
-                            style="color:#0066FF;text-decoration:underline;font-weight: bold;">Click Here!</button>
+                    <h2 class="text-2xl font-semibold mb-4 text-primary">
+                        <i class="fas fa-briefcase mr-2"></i>Job Details
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="jobDescription" class="block text-sm font-medium mb-1">Job Description</label>
+                            <textarea id="jobDescription" name="jobDescription" rows="5" class="input-field"
+                                placeholder="Paste the job description here..." required></textarea>
+                        </div>
+                        <div>
+                            <label for="additionalInfo" class="block text-sm font-medium mb-1">Additional Information</label>
+                            <textarea id="additionalInfo" name="additionalInfo" rows="3" class="input-field"
+                                placeholder="Add other relevant information..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="experienceLevelSection" class="hidden">
+                <div class="card">
+                    <h2 class="text-2xl font-semibold mb-4 text-primary">
+                        <i class="fas fa-user-tie mr-2"></i>Experience Level
+                    </h2>
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center space-x-2">
+                                <input type="radio" name="experience" value="Experience" required class="form-radio text-primary">
+                                <span>Experienced</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="radio" name="experience" value="NoExperience" required class="form-radio text-primary">
+                                <span>No Experience</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="apiKeySection" class="hidden">
+                <div class="card">
+                    <label for="groq-api" class="block text-sm font-medium mb-1">
+                        Enter the API of Groq (it's Free & We are not Saving it)
+                        <button onclick="openSmallWindow()" class="text-primary underline font-bold">Click Here!</button>
                     </label>
                     <div class="input-wrapper">
-                        <input type="text" id="groq-api" name="groq-api" class="input-field"
-                            placeholder="Enter your Groq API key" required>
-                        <div class="info-button"
-                            onclick="showModal()">
-                            Why?
+                        <input type="text" id="groq-api" name="groq-api" class="input-field" placeholder="Enter your Groq API key" required>
+                        <div class="info-button" onclick="showModal()">Why?</div>
                     </div>
                 </div>
+            </section>
 
-                <div style="margin: 1%;"></div>
-                <!-- The Modal -->
-                <div id="myModal" class="modal">
-                    <div class="modal-content">
-                        <span class="close" onclick="closeModal()">&times;</span>
-                        <p>Due to high demand, we are currently unable to fulfill requests as expected, which has led to the termination of the account. <br> <br>
-                            Groq key will allow us to connect and interact with the Groq service effectively and we are not storing your api keys.
-                            <br> <br>
-                            Thank you for your understanding and cooperation..</p>
-                        <img src="https://res.cloudinary.com/dg9wkitg0/image/upload/v1724043061/edyszju6qmd8yrfvhjqa.png"
-                            alt="Explanation Image">
-                    </div>
-                </div>
-
-                <script>
-                    function openSmallWindow() {
-                        const width = 1000;
-                        const height = 600;
-                        const left = (window.screen.width - width) / 2;
-                        const top = (window.screen.height - height) / 2;
-
-                        window.open(
-                            'https://console.groq.com/keys',
-                            'smallWindow',
-                            `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
-                        );
-                    }
-
-                    function showModal() {
-                        const modal = document.getElementById('myModal');
-                        modal.classList.remove('hide');
-                        modal.classList.add('show');
-                        modal.style.display = 'flex';
-                    }
-
-                    function closeModal() {
-                        const modal = document.getElementById('myModal');
-                        modal.classList.remove('show');
-                        modal.classList.add('hide');
-                        setTimeout(() => {
-                            modal.style.display = 'none';
-                        }, 300); // Match with the CSS transition time
-                    }
-
-                    // Ensure modal is hidden initially
-                    document.getElementById('myModal').style.display = 'none';
-                    document.getElementById('myModal').classList.add('hide');
-                </script>
+            <section id="submitSection" class="hidden col-span-2">
                 <div class="card">
-
-                    <div class="space-y-2">
-                        <button type="submit" class="btn-primary">
-                            <i class="fas fa-search-plus"></i>
-                            <span>Analyze Resume</span>
-                        </button>
-
-                    </div>
+                    <button id="analyzeButton" type="submit" class="btn-primary w-full">
+                        <i class="fas fa-search-plus"></i>
+                        <span>Analyze Resume</span>
+                    </button>
                 </div>
-
-
-                </form>
-
             </section>
         </main>
     </div>
+
+    <script>
+        function openSmallWindow() {
+            const width = 1000;
+            const height = 600;
+            const left = (window.screen.width - width) / 2;
+            const top = (window.screen.height - height) / 2;
+
+            window.open(
+                'https://console.groq.com/keys',
+                'smallWindow',
+                `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
+            );
+        }
+
+        function showModal() {
+            const modal = document.getElementById('myModal');
+            modal.classList.remove('hide');
+            modal.classList.add('show');
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('myModal');
+            modal.classList.remove('show');
+            modal.classList.add('hide');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300); // Match with the CSS transition time
+        }
+
+        // Ensure modal is hidden initially
+        document.getElementById('myModal').style.display = 'none';
+        document.getElementById('myModal').classList.add('hide');
+    </script>
 </body>
 
 </html>
