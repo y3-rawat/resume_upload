@@ -512,6 +512,126 @@ display: none;
             transition: width 0.3s ease;
         }
 </style>
+
+<body class="bg-gray-100">
+    <div id="loader" class="hidden">
+        
+        <div class="loading">
+            <div class="loading-wide">
+                <div class="l1 color"></div>
+                <div class="l2 color"></div>
+                <div class="e1 color animation-effect-light"></div>
+                <div class="e2 color animation-effect-light-d"></div>
+                <div class="e3 animation-effect-rot">X</div>
+                <div class="e4 color animation-effect-light"></div>
+                <div class="e5 color animation-effect-light-d"></div>
+                <div class="e6 animation-effect-scale">*</div>
+                <div class="e7 color"></div>
+                <div class="e8 color"></div>
+            </div>
+        </div>
+    </div>
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">
+                <img src="https://res.cloudinary.com/dg9wkitg0/image/upload/v1724043178/r1mp5odnj5z6tnhgfj9e.svg" alt="ATS Resume Analyzer Pro">
+            </h1>
+        </header>
+        <form id="resumeForm">
+            <main id="mainContent" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <section id="resumeUploadSection" class="col-span-2">
+                    <div class="card h-full flex flex-col">
+                        <h2 class="text-2xl font-semibold mb-4 text-primary">
+                            <i class="fas fa-file-upload mr-2"></i>Upload Your Resume
+                        </h2>
+                        <div class="upload-area flex-grow" id="dropArea">
+                            <input type="file" id="file-upload" name="file-upload" accept=".pdf" class="sr-only" required>
+                            <label for="file-upload" class="cursor-pointer">
+                                <i class="fas fa-cloud-upload-alt text-5xl text-primary mb-4"></i>
+                                <p class="text-lg font-medium">Click to Upload</p>
+                                <p class="text-sm text-gray-600 mt-2">Supports PDF up to 10MB</p>
+                                <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
+                            </label>
+                        </div>
+                        <div id="status" class="mt-4 text-center"></div>
+                        <div class="progress-bar-container mt-4" id="progressBarContainer">
+                            <div class="progress-bar" id="progressBar"></div>
+                        </div>
+                        <p id="fileInfo" class="success-message hidden mt-2"></p>
+                        <p id="resumeError" class="error-message hidden mt-2"></p>
+                        <button id="nextButton" class="btn-primary mt-4" disabled>
+                            <i class="fas fa-arrow-right"></i>
+                            <span>Next</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section id="jobDetailsSection" class="hidden">
+                    <div class="card">
+                        <h2 class="text-2xl font-semibold mb-4 text-primary">
+                            <i class="fas fa-briefcase mr-2"></i>Job Details
+                        </h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="jobDescription" class="block text-sm font-medium mb-1">Job Description</label>
+                                <textarea id="jobDescription" name="jobDescription" rows="5" class="input-field"
+                                    placeholder="Paste the job description here..." required></textarea>
+                            </div>
+                            <div>
+                                <label for="additionalInfo" class="block text-sm font-medium mb-1">Additional Information</label>
+                                <textarea id="additionalInfo" name="additionalInfo" rows="3" class="input-field"
+                                    placeholder="Add other relevant information..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="experienceLevelSection" class="hidden">
+                    <div class="card">
+                        <h2 class="text-2xl font-semibold mb-4 text-primary">
+                            <i class="fas fa-user-tie mr-2"></i>Experience Level
+                        </h2>
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center space-x-2">
+                                    <input type="radio" name="experience" value="Experience" required class="form-radio text-primary">
+                                    <span>Experienced</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="radio" name="experience" value="NoExperience" required class="form-radio text-primary">
+                                    <span>No Experience</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="apiKeySection" class="hidden">
+                    <div class="card">
+                        <label for="groq-api" class="block text-sm font-medium mb-1">
+                            Enter the API of Groq (it's Free & We are not Saving it)
+                            <button onclick="openSmallWindow()" class="text-primary underline font-bold">Click Here!</button>
+                        </label>
+                        <div class="input-wrapper">
+                            <input type="text" id="groq-api" name="groq-api" class="input-field" placeholder="Enter your Groq API key" required>
+                            <div class="info-button" onclick="showModal()">Why?</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="submitSection" class="hidden col-span-2">
+                    <div class="card">
+                        <button id="analyzeButton" type="submit" class="btn-primary w-full">
+                            <i class="fas fa-search-plus"></i>
+                            <span>Analyze Resume</span>
+                        </button>
+                    </div>
+                </section>
+            </main>
+        </form>
+    </div>
+   
+</body>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const fileInput = document.getElementById('file-upload');
@@ -694,124 +814,4 @@ display: none;
     document.getElementById('myModal').style.display = 'none';
     document.getElementById('myModal').classList.add('hide');
     </script>
-<body class="bg-gray-100">
-    <div id="loader" class="hidden">
-        
-        <div class="loading">
-            <div class="loading-wide">
-                <div class="l1 color"></div>
-                <div class="l2 color"></div>
-                <div class="e1 color animation-effect-light"></div>
-                <div class="e2 color animation-effect-light-d"></div>
-                <div class="e3 animation-effect-rot">X</div>
-                <div class="e4 color animation-effect-light"></div>
-                <div class="e5 color animation-effect-light-d"></div>
-                <div class="e6 animation-effect-scale">*</div>
-                <div class="e7 color"></div>
-                <div class="e8 color"></div>
-            </div>
-        </div>
-    </div>
-    <div class="container mx-auto px-4 py-8">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-800">
-                <img src="https://res.cloudinary.com/dg9wkitg0/image/upload/v1724043178/r1mp5odnj5z6tnhgfj9e.svg" alt="ATS Resume Analyzer Pro">
-            </h1>
-        </header>
-        <form id="resumeForm">
-            <main id="mainContent" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <section id="resumeUploadSection" class="col-span-2">
-                    <div class="card h-full flex flex-col">
-                        <h2 class="text-2xl font-semibold mb-4 text-primary">
-                            <i class="fas fa-file-upload mr-2"></i>Upload Your Resume
-                        </h2>
-                        <div class="upload-area flex-grow" id="dropArea">
-                            <input type="file" id="file-upload" name="file-upload" accept=".pdf" class="sr-only" required>
-                            <label for="file-upload" class="cursor-pointer">
-                                <i class="fas fa-cloud-upload-alt text-5xl text-primary mb-4"></i>
-                                <p class="text-lg font-medium">Click to Upload</p>
-                                <p class="text-sm text-gray-600 mt-2">Supports PDF up to 10MB</p>
-                                <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
-                            </label>
-                        </div>
-                        <div id="status" class="mt-4 text-center"></div>
-                        <div class="progress-bar-container mt-4" id="progressBarContainer">
-                            <div class="progress-bar" id="progressBar"></div>
-                        </div>
-                        <p id="fileInfo" class="success-message hidden mt-2"></p>
-                        <p id="resumeError" class="error-message hidden mt-2"></p>
-                        <button id="nextButton" class="btn-primary mt-4" disabled>
-                            <i class="fas fa-arrow-right"></i>
-                            <span>Next</span>
-                        </button>
-                    </div>
-                </section>
-
-                <section id="jobDetailsSection" class="hidden">
-                    <div class="card">
-                        <h2 class="text-2xl font-semibold mb-4 text-primary">
-                            <i class="fas fa-briefcase mr-2"></i>Job Details
-                        </h2>
-                        <div class="space-y-4">
-                            <div>
-                                <label for="jobDescription" class="block text-sm font-medium mb-1">Job Description</label>
-                                <textarea id="jobDescription" name="jobDescription" rows="5" class="input-field"
-                                    placeholder="Paste the job description here..." required></textarea>
-                            </div>
-                            <div>
-                                <label for="additionalInfo" class="block text-sm font-medium mb-1">Additional Information</label>
-                                <textarea id="additionalInfo" name="additionalInfo" rows="3" class="input-field"
-                                    placeholder="Add other relevant information..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="experienceLevelSection" class="hidden">
-                    <div class="card">
-                        <h2 class="text-2xl font-semibold mb-4 text-primary">
-                            <i class="fas fa-user-tie mr-2"></i>Experience Level
-                        </h2>
-                        <div class="space-y-2">
-                            <div class="flex items-center space-x-4">
-                                <label class="flex items-center space-x-2">
-                                    <input type="radio" name="experience" value="Experience" required class="form-radio text-primary">
-                                    <span>Experienced</span>
-                                </label>
-                                <label class="flex items-center space-x-2">
-                                    <input type="radio" name="experience" value="NoExperience" required class="form-radio text-primary">
-                                    <span>No Experience</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="apiKeySection" class="hidden">
-                    <div class="card">
-                        <label for="groq-api" class="block text-sm font-medium mb-1">
-                            Enter the API of Groq (it's Free & We are not Saving it)
-                            <button onclick="openSmallWindow()" class="text-primary underline font-bold">Click Here!</button>
-                        </label>
-                        <div class="input-wrapper">
-                            <input type="text" id="groq-api" name="groq-api" class="input-field" placeholder="Enter your Groq API key" required>
-                            <div class="info-button" onclick="showModal()">Why?</div>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="submitSection" class="hidden col-span-2">
-                    <div class="card">
-                        <button id="analyzeButton" type="submit" class="btn-primary w-full">
-                            <i class="fas fa-search-plus"></i>
-                            <span>Analyze Resume</span>
-                        </button>
-                    </div>
-                </section>
-            </main>
-        </form>
-    </div>
-   
-</body>
-
 </html>
