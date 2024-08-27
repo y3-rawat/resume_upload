@@ -64,41 +64,18 @@ module.exports = async (req, res) => {
           const specialChars = detectSpecialCharacters(extractedText);
           console.log("Special characters detected:", specialChars);
 
-          console.log("Sending request to external API");
-          const externalApiUrl = `https://resume-test-api.vercel.app/submit`;
-          const apiResponse = await axios.post(externalApiUrl, {
-            fileName: fileName,
-            fileType: fileType,
-            job_description: formData.job_description,
-            additional_information: formData.additional_information,
-            experience: formData.experience,
+          res.json({
+            success: true,
             extractedText: extractedText,
-            api: formData.api
+            specialChars: specialChars
           });
-          console.log("External API response received");
-
-          const safeExtractedText = safeEncodeURIComponent(extractedText);
-          const safeApiResponse = safeEncodeURIComponent(JSON.stringify(apiResponse.data));
-          const safeSpecialChars = safeEncodeURIComponent(specialChars);
-          
-          const redirectUrl = `/result.html?success=true&extractedText=${safeExtractedText}&apiResponse=${safeApiResponse}&specialChars=${safeSpecialChars}`;
-
-          res.writeHead(302, { Location: redirectUrl });
-          res.end();
         } catch (error) {
           console.error("Error processing request:", error);
-          const errorDetails = {
-            message: error.message,
-            stack: error.stack,
-            response: error.response ? {
-              status: error.response.status,
-              data: error.response.data
-            } : null
-          };
-          const safeErrorDetails = safeEncodeURIComponent(JSON.stringify(errorDetails));
-          const redirectUrl = `/result.html?success=false&errorDetails=${safeErrorDetails}`;
-          res.writeHead(302, { Location: redirectUrl });
-          res.end();
+          res.status(500).json({
+            success: false,
+            message: 'Error processing the file',
+            error: error.message
+          });
         }
 
         resolve();
@@ -106,14 +83,11 @@ module.exports = async (req, res) => {
 
       busboy.on('error', (error) => {
         console.error("Busboy error:", error);
-        const errorDetails = {
-          message: error.message,
-          stack: error.stack
-        };
-        const safeErrorDetails = safeEncodeURIComponent(JSON.stringify(errorDetails));
-        const redirectUrl = `/result.html?success=false&errorDetails=${safeErrorDetails}`;
-        res.writeHead(302, { Location: redirectUrl });
-        res.end();
+        res.status(500).json({
+          success: false,
+          message: 'Error processing the file',
+          error: error.message
+        });
         resolve();
       });
 
